@@ -5,3 +5,10 @@ version = 3
 [[package]]
 name = "glb"
 version = "0.1.0"
+dependencies = [
+ "json",
+]
+
+[[package]]
+name = "json"
+version = "0.1.0"
