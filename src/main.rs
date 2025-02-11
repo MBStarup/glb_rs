@@ -2,12 +2,12 @@ use core::str;
 use std::fs::read;
 
 mod types;
-use json::JsonType;
+use json::{print_json_str, JsonType};
 use types::*;
 
 fn main() {
     println!("Hello, glTF!");
-    let gltf_data = load_glb_from_file("./assets/BoxAnimated.glb");
+    let gltf_data = load_glb_from_file("./assets/AnimatedMorphCube.glb");
     println!("{gltf_data:?}");
 }
 
@@ -36,6 +36,7 @@ fn load_glb_from_file(arg: &str) -> Gltf {
         assert_eq!(json_chunk_type, 0x4E4F534A); // Magic num
         let (json, file) = file.split_at_mut(json_chunk_lenght as usize);
         let json_text = str::from_utf8(json).expect("Could not parse JSON");
+        print_json_str(json_text);
         let json_chars = json_text.chars().collect::<Vec<char>>();
         let (json_obj, unparsable) = json::parse(&json_chars);
         assert_eq!(unparsable, []); // Check we parsed all the json, otherwise somethign is wrong
@@ -180,8 +181,9 @@ fn load_glb_from_file(arg: &str) -> Gltf {
                                                 },
                                                 mode: match map.get("mode") {
                                                     Some(json::JsonType::Int(i)) => {
-                                                        u32::try_from(*i).expect("Negative mode")
+                                                        Some(u32::try_from(*i).expect("Negative mode"))
                                                     }
+                                                    None => None,
                                                     e => panic!("Non int mode {e:?}"),
                                                 },
                                                 material: match map.get("material") {
@@ -289,7 +291,7 @@ fn load_glb_from_file(arg: &str) -> Gltf {
                     accessors: match map.get("accessors") {
                     Some(json::JsonType::Array(a)) => a
                         .iter()
-                        .map(|s| match s {
+                        .map(|s| -> Accessor {match s {
                             json::JsonType::Object(map) => {
                                 let component_type = match map.get("componentType") {
                                     Some(json::JsonType::Int(i)) => {
@@ -310,8 +312,9 @@ fn load_glb_from_file(arg: &str) -> Gltf {
                                     },
                                     byte_offset: match map.get("byteOffset") {
                                         Some(json::JsonType::Int(i)) => {
-                                            u32::try_from(*i).expect("Negative byte_offset")
+                                            Some(u32::try_from(*i).expect("Negative byte_offset"))
                                         }
+                                        None => None,
                                         e => panic!("Non int byte_offset {e:?}"),
                                     },
                                     count: match map.get("count") {
@@ -321,8 +324,9 @@ fn load_glb_from_file(arg: &str) -> Gltf {
                                         e => panic!("Non int count {e:?}"),
                                     },
                                     max: {
-                                        let vec = match map.get("max") {
-                                            Some(json::JsonType::Array(x)) => x
+                                        match map.get("max") {
+                                            Some(json::JsonType::Array(x)) => {
+                                                let vec = x
                                                 .iter()
                                                 .map(|x| {
                                                     try_parse_component_value_fromm_json(
@@ -330,48 +334,53 @@ fn load_glb_from_file(arg: &str) -> Gltf {
                                                         x,
                                                     )
                                                 })
-                                                .collect::<Vec<ComponentType>>(),
+                                                    .collect::<Vec<ComponentType>>();
+                                                Some(match accessor_type.as_str() {
+                                                    "SCALAR" => AccessorType::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  1 found {}", vec.len()))),
+                                                    "VEC2"   => AccessorType::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  2 found {}", vec.len()))),
+                                                    "VEC3"   => AccessorType::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  3 found {}", vec.len()))),
+                                                    "VEC4"   => AccessorType::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
+                                                    "MAT2"   => AccessorType::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
+                                                    "MAT3"   => AccessorType::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  9 found {}", vec.len()))),
+                                                    "MAT4"   => AccessorType::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected 12 found {}", vec.len()))),
+                                                    e => panic!("Unexpected accessor type {e:?} when parsing max"),
+                                                })
+                                                },
+                                            None => None,
                                             e => panic!("No or non array max's {e:?}"),
-                                        };
-                                        match accessor_type.as_str() {
-                                            "SCALAR" => AccessorType::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  1 found {}", vec.len()))),
-                                            "VEC2"   => AccessorType::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  2 found {}", vec.len()))),
-                                            "VEC3"   => AccessorType::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  3 found {}", vec.len()))),
-                                            "VEC4"   => AccessorType::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
-                                            "MAT2"   => AccessorType::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
-                                            "MAT3"   => AccessorType::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  9 found {}", vec.len()))),
-                                            "MAT4"   => AccessorType::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected 12 found {}", vec.len()))),
-                                            e => panic!("Unexpected accessor type {e:?} when parsing max"),
                                         }
                                     },
                                     min: {
-                                        let vec = match map.get("min") {
-                                            Some(json::JsonType::Array(x)) => x
-                                            .iter()
-                                            .map(|x| {
-                                                try_parse_component_value_fromm_json(
-                                                    component_type,
-                                                    x,
-                                                )
-                                            })
-                                                .collect::<Vec<ComponentType>>(),
+                                        match map.get("min") {
+                                            Some(json::JsonType::Array(x)) => {
+                                                let vec = x
+                                                .iter()
+                                                .map(|x| {
+                                                    try_parse_component_value_fromm_json(
+                                                        component_type,
+                                                        x,
+                                                    )
+                                                })
+                                                    .collect::<Vec<ComponentType>>();
+                                                Some(match accessor_type.as_str() {
+                                                    "SCALAR" => AccessorType::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  1 found {}", vec.len()))),
+                                                    "VEC2"   => AccessorType::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  2 found {}", vec.len()))),
+                                                    "VEC3"   => AccessorType::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  3 found {}", vec.len()))),
+                                                    "VEC4"   => AccessorType::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  4 found {}", vec.len()))),
+                                                    "MAT2"   => AccessorType::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  4 found {}", vec.len()))),
+                                                    "MAT3"   => AccessorType::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  9 found {}", vec.len()))),
+                                                    "MAT4"   => AccessorType::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected 12 found {}", vec.len()))),
+                                                    e => panic!("Unexpected accessor type {e:?} when parsing min"),
+                                                })
+                                                },
+                                            None => None,
                                             e => panic!("No or non array min's {e:?}"),
-                                        };
-                                        match accessor_type.as_str() {
-                                            "SCALAR" => AccessorType::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  1 found {}",vec.len()))),
-                                            "VEC2"   => AccessorType::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  2 found {}",vec.len()))),
-                                            "VEC3"   => AccessorType::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  3 found {}",vec.len()))),
-                                            "VEC4"   => AccessorType::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  4 found {}",vec.len()))),
-                                            "MAT2"   => AccessorType::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  4 found {}",vec.len()))),
-                                            "MAT3"   => AccessorType::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  9 found {}",vec.len()))),
-                                            "MAT4"   => AccessorType::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected 12 found {}",vec.len()))),
-                                            e => panic!("Unexpected accessor type {e:?} when parsing min"),
                                         }
                                     },
                                 }
                             }
                             e => panic!("No or on obj accessor {e:?}"),
-                        })
+                        }})
                         .collect(),
                     e => panic!("No or non array accessors {e:?}"),
                 },
@@ -430,8 +439,9 @@ fn load_glb_from_file(arg: &str) -> Gltf {
                                 },
                                 byte_offset: match map.get("byteOffset") {
                                     Some(json::JsonType::Int(i)) => {
-                                        u32::try_from(*i).expect("Negative byte_offset")
+                                        Some(u32::try_from(*i).expect("Negative byte_offset"))
                                     }
+                                    None => None,
                                     e => panic!("No or non int byte_offset {e:?}"),
                                 },
                                 byte_length: match map.get("byteLength") {

@@ -45,7 +45,7 @@ pub struct Attributes {
 pub struct Primitive {
     pub attributes: Attributes,
     pub indices: u32,
-    pub mode: u32,
+    pub mode: Option<u32>,
     pub material: u32,
 }
 
@@ -83,10 +83,10 @@ pub struct Animation {
 #[derive(Debug)]
 pub struct Accessor {
     pub buffer_view: u32,
-    pub byte_offset: u32,
+    pub byte_offset: Option<u32>,
     pub count: u32,
-    pub max: AccessorType,
-    pub min: AccessorType,
+    pub max: Option<AccessorType>,
+    pub min: Option<AccessorType>,
 }
 
 #[derive(Debug)]
@@ -104,7 +104,7 @@ pub struct Material {
 #[derive(Debug)]
 pub struct BufferView {
     pub buffer: u32,
-    pub byte_offset: u32,
+    pub byte_offset: Option<u32>,
     pub byte_length: u32,
     pub byte_stride: Option<u32>,
     pub target: Option<u32>,
