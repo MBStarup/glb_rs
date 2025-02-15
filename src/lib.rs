@@ -1,17 +1,17 @@
 use core::str;
 use std::fs::read;
 
-mod types;
+pub mod types;
 use json::{print_json_str, JsonType};
-use types::*;
+pub use types::*;
 
-fn main() {
-    println!("Hello, glTF!");
-    let gltf_data = load_glb_from_file("./assets/AnimatedMorphCube.glb");
-    println!("{gltf_data:?}");
-}
+// fn main() {
+//     println!("Hello, glTF!");
+//     let gltf_data = load_glb_from_file("./assets/AnimatedMorphCube.glb");
+//     println!("{gltf_data:?}");
+// }
 
-fn load_glb_from_file(arg: &str) -> Gltf {
+pub fn load_glb_from_file(arg: &str) -> Gltf {
     let file: &mut [u8] = &mut read(arg).unwrap();
     let file_length: u32 = file.len().try_into().unwrap();
 

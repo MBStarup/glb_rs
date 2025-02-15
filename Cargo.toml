@@ -3,5 +3,10 @@ name = "glb"
 version = "0.1.0"
 edition = "2021"
 
+
+[lib]
+name = "glb"
+path = "src/lib.rs"
+
 [dependencies]
 json = { version = "0.1.0", path = "../json/" }
