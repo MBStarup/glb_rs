@@ -18,7 +18,7 @@ pub enum ComponentValue {
     /*_5126*/ FLOAT(f32),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AccessorType {
     SCALAR,
     VEC2,
