@@ -1,5 +1,4 @@
 use core::str;
-use std::fs::read;
 
 pub mod types;
 use json::{print_json_str, JsonType};
@@ -11,8 +10,7 @@ pub use types::*;
 //     println!("{gltf_data:?}");
 // }
 
-pub fn load_glb_from_file(arg: &str) -> Gltf {
-    let file: &mut [u8] = &mut read(arg).unwrap();
+pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
     let file_length: u32 = file.len().try_into().unwrap();
 
     unsafe fn pop_u32(bytes: &mut [u8]) -> (u32, &mut [u8]) {
@@ -44,7 +42,7 @@ pub fn load_glb_from_file(arg: &str) -> Gltf {
 
         let (blob_chunk_lenght, file) = pop_u32(file);
         println!("BLOB chunk lenght: {blob_chunk_lenght}");
-        let (blob_chunk_type, file) = pop_u32(file);
+        let (blob_chunk_type, blob) = pop_u32(file);
         assert_eq!(blob_chunk_type, 0x004E4942); // Magic num
 
         fn try_parse_component_value_fromm_json(
@@ -92,7 +90,8 @@ pub fn load_glb_from_file(arg: &str) -> Gltf {
             }
         }
 
-        match json_obj {
+
+        (match json_obj {
             // TODO: impl some sort of "from_json" macro trait that can be derived to autmate this recursive parsing
             // TODO: might be hard due to the dependend parsing of the min and max in accersors
             json::JsonType::Object(map) => {
@@ -492,7 +491,7 @@ pub fn load_glb_from_file(arg: &str) -> Gltf {
                 }
             }
             _ => panic!("Wrong JSON"),
-        }
+        }, blob)
     }
 }
 
