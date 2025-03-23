@@ -60,6 +60,7 @@ pub struct Node {
 #[derive(Debug)]
 pub struct Attributes {
     pub normal: u32,
+    pub tangent: u32,
     pub position: u32,
 }
 
@@ -67,6 +68,7 @@ pub struct Attributes {
 pub struct Primitive {
     pub attributes: Attributes,
     pub indices: u32,
+    pub targets: Vec<Attributes>,
     pub mode: Option<u32>,
     pub material: u32,
 }

@@ -176,6 +176,13 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                                 }
                                                                 e => panic!("Non int normal {e:?}"),
                                                             },
+                                                            tangent: match map.get("TANGENT") {
+                                                                Some(json::JsonType::Int(i)) => {
+                                                                    u32::try_from(*i)
+                                                                        .expect("Negative tangent")
+                                                                }
+                                                                e => panic!("Non int tangent {e:?}"),
+                                                            },
                                                             position: match map.get("POSITION") {
                                                                 Some(json::JsonType::Int(i)) => {
                                                                     u32::try_from(*i)
@@ -188,6 +195,41 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                         }
                                                     }
                                                     _ => panic!("Non obj attributes"),
+                                                },
+                                                targets: match map.get("targets") {
+                                                    Some(json::JsonType::Array(a)) => a.iter().map(|s| match s {
+                                                            json::JsonType::Object(map) => {
+                                                                // TODO: think these can vary, handle that?
+                                                                Attributes {
+                                                                    normal: match map.get("NORMAL") {
+                                                                        Some(json::JsonType::Int(i)) => {
+                                                                            u32::try_from(*i)
+                                                                                .expect("Negative normal")
+                                                                        }
+                                                                        e => panic!("Non int normal {e:?}"),
+                                                                    },
+                                                                    tangent: match map.get("TANGENT") {
+                                                                        Some(json::JsonType::Int(i)) => {
+                                                                            u32::try_from(*i)
+                                                                                .expect("Negative tangent")
+                                                                        }
+                                                                        e => panic!("Non int tangent {e:?}"),
+                                                                    },
+                                                                    position: match map.get("POSITION") {
+                                                                        Some(json::JsonType::Int(i)) => {
+                                                                            u32::try_from(*i)
+                                                                                .expect("Negative position")
+                                                                        }
+                                                                        e => {
+                                                                            panic!("Non int position {e:?}")
+                                                                        }
+                                                                    },
+                                                                }
+                                                            },
+                                                            _ => panic!("Non obj attributes in target"),
+                                                        }
+                                                    ).collect(),
+                                                    _ => panic!("Non array targets"),
                                                 },
                                                 indices: match map.get("indices") {
                                                     Some(json::JsonType::Int(i)) => {
