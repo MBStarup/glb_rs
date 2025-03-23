@@ -1,21 +1,43 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ComponentType {
-    _5120(i8),
-    _5121(u8),
-    _5122(i16),
-    _5123(u16),
-    _5125(i32),
-    _5126(f32),
+    /*_5120*/ BYTE,
+    /*_5121*/ UNSIGNED_BYTE,
+    /*_5122*/ SHORT,
+    /*_5123*/ UNSIGNED_SHORT,
+    /*_5125*/ UNSIGNED_INT,
+    /*_5126*/ FLOAT,
 }
+
 #[derive(Debug)]
+pub enum ComponentValue {
+    /*_5120*/ BYTE(i8),
+    /*_5121*/ UNSIGNED_BYTE(u8),
+    /*_5122*/ SHORT(i16),
+    /*_5123*/ UNSIGNED_SHORT(u16),
+    /*_5125*/ UNSIGNED_INT(u32),
+    /*_5126*/ FLOAT(f32),
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum AccessorType {
-    SCALAR([ComponentType; 1]),
-    VEC2([ComponentType; 2]),
-    VEC3([ComponentType; 3]),
-    VEC4([ComponentType; 4]),
-    MAT2([ComponentType; 4]),
-    MAT3([ComponentType; 9]),
-    MAT4([ComponentType; 16]),
+    SCALAR,
+    VEC2,
+    VEC3,
+    VEC4,
+    MAT2,
+    MAT3,
+    MAT4,
+}
+
+#[derive(Debug)]
+pub enum AccessorValue {
+    SCALAR([ComponentValue; 1]),
+    VEC2([ComponentValue; 2]),
+    VEC3([ComponentValue; 3]),
+    VEC4([ComponentValue; 4]),
+    MAT2([ComponentValue; 4]),
+    MAT3([ComponentValue; 9]),
+    MAT4([ComponentValue; 16]),
 }
 
 #[derive(Debug)]
@@ -53,6 +75,7 @@ pub struct Primitive {
 pub struct Mesh {
     pub primitives: Vec<Primitive>,
     pub name: String,
+    // TODO: weights
 }
 
 #[derive(Debug)]
@@ -84,9 +107,11 @@ pub struct Animation {
 pub struct Accessor {
     pub buffer_view: u32,
     pub byte_offset: Option<u32>,
+    pub accessor_type: AccessorType,
+    pub component_type: ComponentType,
     pub count: u32,
-    pub max: Option<AccessorType>,
-    pub min: Option<AccessorType>,
+    pub max: Option<AccessorValue>,
+    pub min: Option<AccessorValue>,
 }
 
 #[derive(Debug)]

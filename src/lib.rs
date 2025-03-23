@@ -45,46 +45,63 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
         let (blob_chunk_type, blob) = pop_u32(file);
         assert_eq!(blob_chunk_type, 0x004E4942); // Magic num
 
-        fn try_parse_component_value_fromm_json(
-            component_type: u32,
+
+        fn try_parse_component_type(component_type_code: u32,) -> ComponentType {
+            match component_type_code {
+                5120 => ComponentType::BYTE,
+                5122 => ComponentType::SHORT,
+                5121 => ComponentType::UNSIGNED_BYTE,
+                5123 => ComponentType::UNSIGNED_SHORT,
+                5125 => ComponentType::UNSIGNED_INT,
+                5126 => ComponentType::FLOAT,
+                e => panic!("Unrecognized component_type {e:?}"),
+            }
+        }
+
+
+        fn try_parse_component_value_from_json(
+            component_type_code: u32,
             component: &JsonType,
-        ) -> ComponentType {
-            match component_type {
+        ) -> ComponentValue {
+            match component_type_code {
                 5120 => match component {
-                    json::JsonType::Int(i) => ComponentType::_5120(
+                    json::JsonType::Int(i) => ComponentValue::BYTE(
                         (*i).try_into()
-                            .expect("i32 -> i8 failed for component with component_type 5120"),
+                            .expect("i32 -> i8 failed for component with component_type 5120 (BYTE)"),
                     ),
-                    e => panic!("Non int component {e:?} with component_type 5120"),
+                    e => panic!("Non int component {e:?} with component_type 5120 (BYTE)"),
                 },
                 5122 => match component {
-                    json::JsonType::Int(i) => ComponentType::_5122(
+                    json::JsonType::Int(i) => ComponentValue::SHORT(
                         (*i).try_into()
-                            .expect("i32 -> i16 failed for component with component_type 5122"),
+                            .expect("i32 -> i16 failed for component with component_type 5122 (SHORT)"),
                     ),
-                    e => panic!("Non int component {e:?} with component_type 5122"),
-                },
-                5125 => match component {
-                    json::JsonType::Int(i) => ComponentType::_5125(*i),
-                    e => panic!("Non int component {e:?} with component_type 5125"),
+                    e => panic!("Non int component {e:?} with component_type 5122 (SHORT)"),
                 },
                 5121 => match component {
-                    json::JsonType::Int(i) => ComponentType::_5121(
+                    json::JsonType::Int(i) => ComponentValue::UNSIGNED_BYTE(
                         (*i).try_into()
-                            .expect("Negative component or too big component with component_type 5121"),
+                        .expect("Negative component or too big component with component_type 5121 (UNSIGNED BYTE)"),
                     ),
-                    e => panic!("Non int component {e:?} with component_type 5121"),
+                    e => panic!("Non int component {e:?} with component_type 5121 (UNSIGNED BYTE)"),
                 },
                 5123 => match component {
-                    json::JsonType::Int(i) => ComponentType::_5123(
+                    json::JsonType::Int(i) => ComponentValue::UNSIGNED_SHORT(
                         (*i).try_into()
-                            .expect("Negative component or too big component with component_type 5123"),
+                        .expect("Negative component or too big component with component_type 5123 (UNSIGNED SHORT)"),
                     ),
-                    e => panic!("Non int component {e:?} with component_type 5123"),
+                    e => panic!("Non int component {e:?} with component_type 5123 (UNSIGNED SHORT)"),
+                },
+                5125 => match component {
+                    json::JsonType::Int(i) => ComponentValue::UNSIGNED_INT(
+                        (*i).try_into()
+                        .expect("Negative component or too big component with component_type 5125 (UNSIGNED INT)"),
+                    ),
+                    e => panic!("Non int component {e:?} with component_type 5125 (UNSIGNED INT)"),
                 },
                 5126 => match component {
-                    json::JsonType::Float(f) => ComponentType::_5126(*f),
-                    e => panic!("Non float component {e:?} with component_type 5126"),
+                    json::JsonType::Float(f) => ComponentValue::FLOAT(*f),
+                    e => panic!("Non float component {e:?} with component_type 5126 (FLOAT)"),
                 },
                 e => panic!("Unrecognized component_type {e:?}"),
             }
@@ -292,15 +309,24 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                         .iter()
                         .map(|s| -> Accessor {match s {
                             json::JsonType::Object(map) => {
-                                let component_type = match map.get("componentType") {
+                                let component_type_code = match map.get("componentType") {
                                     Some(json::JsonType::Int(i)) => {
-                                        u32::try_from(*i).expect("Negative component_type")
+                                        u32::try_from(*i).expect("Negative component_type code")
                                     }
                                     e => panic!("Non int component_type {e:?}"),
                                 };
-                                let accessor_type = match map.get("type") {
+                                let accessor_type = &match (match map.get("type") {
                                     Some(json::JsonType::String(s)) => s.to_string(),
                                     e => panic!("No or none string type {e:?}"),
+                                }).as_str() {
+                                    "SCALAR" => AccessorType::SCALAR,
+                                    "VEC2"   => AccessorType::VEC2  ,
+                                    "VEC3"   => AccessorType::VEC3  ,
+                                    "VEC4"   => AccessorType::VEC4  ,
+                                    "MAT2"   => AccessorType::MAT2  ,
+                                    "MAT3"   => AccessorType::MAT3  ,
+                                    "MAT4"   => AccessorType::MAT4  ,
+                                    e => panic!("Unexpected accessor type {e:?} when parsing accessor_type"),
                                 };
                                 Accessor {
                                     buffer_view: match map.get("bufferView") {
@@ -316,6 +342,8 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                         None => None,
                                         e => panic!("Non int byte_offset {e:?}"),
                                     },
+                                    accessor_type: *accessor_type,
+                                    component_type: try_parse_component_type(component_type_code),
                                     count: match map.get("count") {
                                         Some(json::JsonType::Int(i)) => {
                                             u32::try_from(*i).expect("Negative count")
@@ -328,20 +356,20 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                 let vec = x
                                                 .iter()
                                                 .map(|x| {
-                                                    try_parse_component_value_fromm_json(
-                                                        component_type,
+                                                    try_parse_component_value_from_json(
+                                                        component_type_code,
                                                         x,
                                                     )
                                                 })
-                                                    .collect::<Vec<ComponentType>>();
-                                                Some(match accessor_type.as_str() {
-                                                    "SCALAR" => AccessorType::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  1 found {}", vec.len()))),
-                                                    "VEC2"   => AccessorType::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  2 found {}", vec.len()))),
-                                                    "VEC3"   => AccessorType::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  3 found {}", vec.len()))),
-                                                    "VEC4"   => AccessorType::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
-                                                    "MAT2"   => AccessorType::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
-                                                    "MAT3"   => AccessorType::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected  9 found {}", vec.len()))),
-                                                    "MAT4"   => AccessorType::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor max, expected 12 found {}", vec.len()))),
+                                                    .collect::<Vec<ComponentValue>>();
+                                                Some(match accessor_type {
+                                                    AccessorType::SCALAR => AccessorValue::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  1 found {}", vec.len()))),
+                                                    AccessorType::VEC2   => AccessorValue::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  2 found {}", vec.len()))),
+                                                    AccessorType::VEC3   => AccessorValue::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  3 found {}", vec.len()))),
+                                                    AccessorType::VEC4   => AccessorValue::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
+                                                    AccessorType::MAT2   => AccessorValue::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
+                                                    AccessorType::MAT3   => AccessorValue::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  9 found {}", vec.len()))),
+                                                    AccessorType::MAT4   => AccessorValue::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected 12 found {}", vec.len()))),
                                                     e => panic!("Unexpected accessor type {e:?} when parsing max"),
                                                 })
                                                 },
@@ -355,20 +383,20 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                 let vec = x
                                                 .iter()
                                                 .map(|x| {
-                                                    try_parse_component_value_fromm_json(
-                                                        component_type,
+                                                    try_parse_component_value_from_json(
+                                                        component_type_code,
                                                         x,
                                                     )
                                                 })
-                                                    .collect::<Vec<ComponentType>>();
-                                                Some(match accessor_type.as_str() {
-                                                    "SCALAR" => AccessorType::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  1 found {}", vec.len()))),
-                                                    "VEC2"   => AccessorType::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  2 found {}", vec.len()))),
-                                                    "VEC3"   => AccessorType::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  3 found {}", vec.len()))),
-                                                    "VEC4"   => AccessorType::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  4 found {}", vec.len()))),
-                                                    "MAT2"   => AccessorType::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  4 found {}", vec.len()))),
-                                                    "MAT3"   => AccessorType::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected  9 found {}", vec.len()))),
-                                                    "MAT4"   => AccessorType::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentType>| panic!("Mismatched amount in accessor min, expected 12 found {}", vec.len()))),
+                                                    .collect::<Vec<ComponentValue>>();
+                                                Some(match accessor_type {
+                                                    AccessorType::SCALAR => AccessorValue::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  1 found {}", vec.len()))),
+                                                    AccessorType::VEC2   => AccessorValue::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  2 found {}", vec.len()))),
+                                                    AccessorType::VEC3   => AccessorValue::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  3 found {}", vec.len()))),
+                                                    AccessorType::VEC4   => AccessorValue::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  4 found {}", vec.len()))),
+                                                    AccessorType::MAT2   => AccessorValue::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  4 found {}", vec.len()))),
+                                                    AccessorType::MAT3   => AccessorValue::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  9 found {}", vec.len()))),
+                                                    AccessorType::MAT4   => AccessorValue::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected 12 found {}", vec.len()))),
                                                     e => panic!("Unexpected accessor type {e:?} when parsing min"),
                                                 })
                                                 },
