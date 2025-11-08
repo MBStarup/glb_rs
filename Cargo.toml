@@ -9,4 +9,4 @@ name = "glb"
 path = "src/lib.rs"
 
 [dependencies]
-json = { version = "0.1.0", path = "../json/" }
+json = { version = "0.1.0", path = "../json_rs/" }

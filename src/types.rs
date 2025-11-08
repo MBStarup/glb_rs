@@ -59,18 +59,19 @@ pub struct Node {
 
 #[derive(Debug)]
 pub struct Attributes {
-    pub normal: u32,
-    pub tangent: u32,
     pub position: u32,
+    pub normal: u32,
+    pub tangent: Option<u32>,
+    pub texcoord: Option<u32>,
 }
 
 #[derive(Debug)]
 pub struct Primitive {
     pub attributes: Attributes,
     pub indices: u32,
-    pub targets: Vec<Attributes>,
+    pub targets: Option<Vec<Attributes>>,
     pub mode: Option<u32>,
-    pub material: u32,
+    pub material: Option<u32>,
 }
 
 #[derive(Debug)]
@@ -112,6 +113,7 @@ pub struct Accessor {
     pub accessor_type: AccessorType,
     pub component_type: ComponentType,
     pub count: u32,
+    pub stride: Option<u32>,
     pub max: Option<AccessorValue>,
     pub min: Option<AccessorValue>,
 }
@@ -148,7 +150,7 @@ pub struct Gltf {
     pub scene: u32,
     pub scenes: Vec<Scene>,
     pub meshes: Vec<Mesh>,
-    pub animations: Vec<Animation>,
+    pub animations: Option<Vec<Animation>>,
     pub accessors: Vec<Accessor>,
     pub materials: Vec<Material>,
     pub buffer_views: Vec<BufferView>,

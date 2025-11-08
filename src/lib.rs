@@ -101,6 +101,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                 },
                 5126 => match component {
                     json::JsonType::Float(f) => ComponentValue::FLOAT(*f),
+                    json::JsonType::Int(i) => ComponentValue::FLOAT(*i as f32), //TODO: maybe casts like this are neccesary more places, since the spec allows for 7 to be a float or an int, but I parse them as ints
                     e => panic!("Non float component {e:?} with component_type 5126 (FLOAT)"),
                 },
                 e => panic!("Unrecognized component_type {e:?}"),
@@ -178,10 +179,19 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                             },
                                                             tangent: match map.get("TANGENT") {
                                                                 Some(json::JsonType::Int(i)) => {
-                                                                    u32::try_from(*i)
-                                                                        .expect("Negative tangent")
+                                                                    Some(u32::try_from(*i)
+                                                                    .expect("Negative tangent"))
                                                                 }
+                                                                None => None,
                                                                 e => panic!("Non int tangent {e:?}"),
+                                                            },
+                                                            texcoord: match map.get("TEXCOORD_0") { //TODO: figure out the number thing in this name
+                                                                Some(json::JsonType::Int(i)) => {
+                                                                    Some(u32::try_from(*i)
+                                                                        .expect("Negative texcoord"))
+                                                                }
+                                                                None => None,
+                                                                e => panic!("Non int texcoord {e:?}"),
                                                             },
                                                             position: match map.get("POSITION") {
                                                                 Some(json::JsonType::Int(i)) => {
@@ -197,7 +207,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                     _ => panic!("Non obj attributes"),
                                                 },
                                                 targets: match map.get("targets") {
-                                                    Some(json::JsonType::Array(a)) => a.iter().map(|s| match s {
+                                                    Some(json::JsonType::Array(a)) => Some(a.iter().map(|s| match s {
                                                             json::JsonType::Object(map) => {
                                                                 // TODO: think these can vary, handle that?
                                                                 Attributes {
@@ -210,10 +220,19 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                                     },
                                                                     tangent: match map.get("TANGENT") {
                                                                         Some(json::JsonType::Int(i)) => {
-                                                                            u32::try_from(*i)
-                                                                                .expect("Negative tangent")
+                                                                            Some(u32::try_from(*i)
+                                                                            .expect("Negative tangent"))
                                                                         }
+                                                                        None => None,
                                                                         e => panic!("Non int tangent {e:?}"),
+                                                                    },
+                                                                    texcoord: match map.get("TEXCOORD_0") { //TODO: figure out the number thing in this name
+                                                                        Some(json::JsonType::Int(i)) => {
+                                                                            Some(u32::try_from(*i)
+                                                                                .expect("Negative texcoord"))
+                                                                        }
+                                                                        None => None,
+                                                                        e => panic!("Non int texcoord {e:?}"),
                                                                     },
                                                                     position: match map.get("POSITION") {
                                                                         Some(json::JsonType::Int(i)) => {
@@ -228,7 +247,8 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                             },
                                                             _ => panic!("Non obj attributes in target"),
                                                         }
-                                                    ).collect(),
+                                                    ).collect()),
+                                                    None => None,
                                                     _ => panic!("Non array targets"),
                                                 },
                                                 indices: match map.get("indices") {
@@ -246,9 +266,10 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                 },
                                                 material: match map.get("material") {
                                                     Some(json::JsonType::Int(i)) => {
-                                                        u32::try_from(*i)
-                                                            .expect("Negative material")
+                                                        Some(u32::try_from(*i)
+                                                            .expect("Negative material"))
                                                     }
+                                                    None => None,
                                                     e => panic!("Non int material {e:?}"),
                                                 },
                                             },
@@ -268,7 +289,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                     e => panic!("No or none array meshes {e:?}"),
                 },
                     animations: match map.get("animations") {
-                    Some(json::JsonType::Array(a)) => a
+                    Some(json::JsonType::Array(a)) => Some(a
                         .iter()
                         .map(|s| match s {
                             json::JsonType::Object(map) => Animation {
@@ -343,8 +364,9 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                             },
                             e => panic!("Non obj scene {e:?}"),
                         })
-                        .collect(),
-                    e => panic!("No or non obj animations {e:?}"),
+                        .collect()),
+                        None => None,
+                    e => panic!("Non obj animations {e:?}"),
                 },
                     accessors: match map.get("accessors") {
                     Some(json::JsonType::Array(a)) => a
@@ -386,6 +408,13 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                     },
                                     accessor_type: *accessor_type,
                                     component_type: try_parse_component_type(component_type_code),
+                                    stride: match map.get("stride") {
+                                        Some(json::JsonType::Int(i)) => {
+                                            Some(u32::try_from(*i).expect("Negative stride"))
+                                        }
+                                        None => None,
+                                        e => panic!("Non int stride {e:?}"),
+                                    },
                                     count: match map.get("count") {
                                         Some(json::JsonType::Int(i)) => {
                                             u32::try_from(*i).expect("Negative count")
@@ -463,23 +492,21 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                     PbrMetallicRoughness {
                                         base_color_factor: match map.get("baseColorFactor") {
                                             Some(json::JsonType::Array(x)) => {
-                                                match &x[..] {
-                                                    [
-                                                        json::JsonType::Float(r),
-                                                        json::JsonType::Float(g),
-                                                        json::JsonType::Float(b),
-                                                        json::JsonType::Float(a),
-                                                    ] => {
-                                                        [*r,*g,*b,*a]
+                                                assert!(x.len() == 4, "base_color_factor is not 4 component");
+                                                x.into_iter().map(|component| {
+                                                    match component {
+                                                        json::JsonType::Float(f) => *f,
+                                                        json::JsonType::Int(i) => *i as f32,
+                                                        _ => panic!("base_color_factor is not all numbers"),
                                                     }
-                                                    _ => panic!("base_color_factor is not 4 component or is not floats"),
-
-                                                }
-                                            }
-                                            e => panic!("No or non array base_color_factor {e:?}"),
+                                                }).collect::<Vec<f32>>().try_into().expect(
+                                                    "base_color_factor has somehow become not 4 components since last we checked???")
+                                            },
+                                            _ => panic!("base_color_factor is not an array"),
                                         },
                                         metallic_factor: match map.get("metallicFactor") {
                                             Some(json::JsonType::Float(f)) => *f,
+                                            Some(json::JsonType::Int(i)) => *i as f32,
                                             e => panic!("No or non float metallic_factor {e:?}"),
                                         },
                                     },
@@ -493,6 +520,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                             e => panic!("No or on obj material {e:?}"),
                         })
                         .collect(),
+                        None => vec![],
                     e => panic!("No or non array materials {e:?}"),
                 },
                     buffer_views: match map.get("bufferViews") {
@@ -565,3 +593,10 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
     }
 }
 
+impl Gltf {
+    pub fn access_buffer<'a>(&self, buffer: &'a[u8], accessor: &Accessor) -> &'a [u8] {
+        let buffer_view = &self.buffer_views[accessor.buffer_view as usize];
+        let buffer_start = buffer_view.byte_offset.unwrap_or(0) as usize;
+        &buffer[buffer_start..buffer_start + (buffer_view.byte_length as usize)]
+    }
+}
