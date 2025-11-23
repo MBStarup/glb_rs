@@ -9,4 +9,4 @@ name = "glb"
 path = "src/lib.rs"
 
 [dependencies]
-json = { version = "0.1.0", path = "../json_rs/" }
+json = { git = "https://github.com/MBStarup/json_rs/", version = "0.1.0" }
