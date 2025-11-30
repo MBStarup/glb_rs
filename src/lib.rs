@@ -312,6 +312,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                 matrix: match n.get("matrix") {
                                     Some(JsonType::Array(a)) => Some(a.iter().map(|x| { match x {
                                         JsonType::Float(f) => *f,
+                                        JsonType::Int(i) => *i as f32,
                                         e => panic!("Non float matrix entry {e:?}"),
                                     }}).collect::<Vec<f32>>().try_into().unwrap_or_else(|vec: Vec<f32>| panic!("Mismatched amount in node matrix, expected 16 found {}", vec.len()))),
                                     Some(e) => panic!("Non array matrix {e:?}"),
@@ -325,6 +326,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                 rotation: match n.get("rotation") {
                                     Some(JsonType::Array(a)) => Some(a.iter().map(|x| { match x {
                                         JsonType::Float(f) => *f,
+                                        JsonType::Int(i) => *i as f32,
                                         e => panic!("Non float rotation entry {e:?}"),
                                     }}).collect::<Vec<f32>>().try_into().unwrap_or_else(|vec: Vec<f32>| panic!("Mismatched amount in node rotation, expected 16 found {}", vec.len()))),
                                     Some(e) => panic!("Non array rotation {e:?}"),
@@ -333,6 +335,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                 scale: match n.get("scale") {
                                     Some(JsonType::Array(a)) => Some(a.iter().map(|x| { match x {
                                         JsonType::Float(f) => *f,
+                                        JsonType::Int(i) => *i as f32,
                                         e => panic!("Non float scale entry {e:?}"),
                                     }}).collect::<Vec<f32>>().try_into().unwrap_or_else(|vec: Vec<f32>| panic!("Mismatched amount in node scale, expected 16 found {}", vec.len()))),
                                     Some(e) => panic!("Non array scale {e:?}"),
@@ -341,6 +344,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                 translation: match n.get("translation") {
                                     Some(JsonType::Array(a)) => Some(a.iter().map(|x| { match x {
                                         JsonType::Float(f) => *f,
+                                        JsonType::Int(i) => *i as f32,
                                         e => panic!("Non float translation entry {e:?}"),
                                     }}).collect::<Vec<f32>>().try_into().unwrap_or_else(|vec: Vec<f32>| panic!("Mismatched amount in node translation, expected 16 found {}", vec.len()))),
                                     Some(e) => panic!("Non array translation {e:?}"),
@@ -349,6 +353,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                 weights: match n.get("weights") {
                                     Some(JsonType::Array(a)) => a.iter().map(|x| { match x {
                                         JsonType::Float(f) => *f,
+                                        JsonType::Int(i) => *i as f32,
                                         e => panic!("Non float weight {e:?}"),
                                     }}).collect(),
                                     Some(e) => panic!("Non array weights {e:?}"),
