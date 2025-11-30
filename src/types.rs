@@ -52,9 +52,18 @@ pub struct Scene {
 }
 #[derive(Debug)]
 pub struct Node {
-    pub children: Option<Vec<u32>>,
+    pub camera: Option<u32>,
+    pub children: Vec<u32>,
+    pub skin: Option<u32>,
+    pub matrix: Option<[f32; 16]>,
     pub mesh: Option<u32>,
     pub rotation: Option<[f32; 4]>,
+    pub scale: Option<[f32; 3]>,
+    pub translation: Option<[f32; 3]>,
+    pub weights: Vec<f32>,
+    pub name: Option<String>,
+    // pub extension: Option<JsonType>,
+    // pub extras: Option<???>,
 }
 
 #[derive(Debug)]
@@ -150,6 +159,7 @@ pub struct Gltf {
     pub scene: u32,
     pub scenes: Vec<Scene>,
     pub meshes: Vec<Mesh>,
+    pub nodes: Vec<Node>,
     pub animations: Vec<Animation>,
     pub accessors: Vec<Accessor>,
     pub materials: Vec<Material>,

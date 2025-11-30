@@ -288,6 +288,83 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                             .collect(),
                         e => panic!("No or none array meshes {e:?}"),
                     },
+                    nodes: match map.get("nodes") {
+                        Some(json::JsonType::Array(a)) => a.iter().map(|x| match x {
+                            JsonType::Object(n) => Node { 
+                                camera: match n.get("camera") {
+                                    Some(JsonType::Int(i)) => Some(u32::try_from(*i).expect("Negative camera")),
+                                    Some(e) => panic!("Non int camera {e:?}"),
+                                    None => None,
+                                },
+                                children: match n.get("children") {
+                                    Some(JsonType::Array(a)) => a.iter().map(|x| { match x {
+                                        JsonType::Int(i) => u32::try_from(*i).expect("Negative child"),
+                                        e => panic!("Non int child {e:?}"),
+                                    }}).collect(),
+                                    Some(e) => panic!("Non array children {e:?}"),
+                                    None => vec![],
+                                },
+                                skin: match n.get("skin") {
+                                    Some(JsonType::Int(i)) => Some(u32::try_from(*i).expect("Negative skin")),
+                                    Some(e) => panic!("Non int skin {e:?}"),
+                                    None => None,
+                                },
+                                matrix: match n.get("matrix") {
+                                    Some(JsonType::Array(a)) => Some(a.iter().map(|x| { match x {
+                                        JsonType::Float(f) => *f,
+                                        e => panic!("Non float matrix entry {e:?}"),
+                                    }}).collect::<Vec<f32>>().try_into().unwrap_or_else(|vec: Vec<f32>| panic!("Mismatched amount in node matrix, expected 16 found {}", vec.len()))),
+                                    Some(e) => panic!("Non array matrix {e:?}"),
+                                    None => None,
+                                },
+                                mesh: match n.get("mesh") {
+                                    Some(JsonType::Int(i)) => Some(u32::try_from(*i).expect("Negative mesh")),
+                                    Some(e) => panic!("Non int mesh {e:?}"),
+                                    None => None,
+                                },
+                                rotation: match n.get("rotation") {
+                                    Some(JsonType::Array(a)) => Some(a.iter().map(|x| { match x {
+                                        JsonType::Float(f) => *f,
+                                        e => panic!("Non float rotation entry {e:?}"),
+                                    }}).collect::<Vec<f32>>().try_into().unwrap_or_else(|vec: Vec<f32>| panic!("Mismatched amount in node rotation, expected 16 found {}", vec.len()))),
+                                    Some(e) => panic!("Non array rotation {e:?}"),
+                                    None => None,
+                                },
+                                scale: match n.get("scale") {
+                                    Some(JsonType::Array(a)) => Some(a.iter().map(|x| { match x {
+                                        JsonType::Float(f) => *f,
+                                        e => panic!("Non float scale entry {e:?}"),
+                                    }}).collect::<Vec<f32>>().try_into().unwrap_or_else(|vec: Vec<f32>| panic!("Mismatched amount in node scale, expected 16 found {}", vec.len()))),
+                                    Some(e) => panic!("Non array scale {e:?}"),
+                                    None => None,
+                                },
+                                translation: match n.get("translation") {
+                                    Some(JsonType::Array(a)) => Some(a.iter().map(|x| { match x {
+                                        JsonType::Float(f) => *f,
+                                        e => panic!("Non float translation entry {e:?}"),
+                                    }}).collect::<Vec<f32>>().try_into().unwrap_or_else(|vec: Vec<f32>| panic!("Mismatched amount in node translation, expected 16 found {}", vec.len()))),
+                                    Some(e) => panic!("Non array translation {e:?}"),
+                                    None => None,
+                                },
+                                weights: match n.get("weights") {
+                                    Some(JsonType::Array(a)) => a.iter().map(|x| { match x {
+                                        JsonType::Float(f) => *f,
+                                        e => panic!("Non float weight {e:?}"),
+                                    }}).collect(),
+                                    Some(e) => panic!("Non array weights {e:?}"),
+                                    None => vec![],
+                                },
+                                name: match n.get("name") {
+                                    Some(JsonType::String(s)) => Some(s.to_string()),
+                                    Some(e) => panic!("Non string name {e:?}"),
+                                    None => None,
+                                },
+                            },
+                            e => panic!("Non object node {e:?}"),
+                        }).collect(),
+                        None => vec![],
+                        Some(e) => panic!("Non array nodes {e:?}"),
+                    },
                     animations: match map.get("animations") {
                         Some(json::JsonType::Array(a)) => a
                             .iter()
