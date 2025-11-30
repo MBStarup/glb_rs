@@ -115,477 +115,477 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
             json::JsonType::Object(map) => {
                 Gltf {
                     asset: match map.get("asset") {
-                    Some(json::JsonType::Object(map)) => Asset {
-                        generator: match map.get("generator") {
-                            Some(json::JsonType::String(s)) => s.to_string(),
-                            _ => panic!("No generator"),
+                        Some(json::JsonType::Object(map)) => Asset {
+                            generator: match map.get("generator") {
+                                Some(json::JsonType::String(s)) => s.to_string(),
+                                _ => panic!("No generator"),
+                            },
+                            version: match map.get("version") {
+                                Some(json::JsonType::String(s)) => s.to_string(),
+                                _ => panic!("No version"),
+                            },
                         },
-                        version: match map.get("version") {
-                            Some(json::JsonType::String(s)) => s.to_string(),
-                            _ => panic!("No version"),
-                        },
+                        _ => panic!("No asset"),
                     },
-                    _ => panic!("No asset"),
-                },
                     scene: match map.get("scene") {
-                    Some(json::JsonType::Int(scene)) => {
-                        u32::try_from(*scene).expect("Negative scene")
-                    }
-                    e => panic!("No or non int scene {e:?}"),
-                },
+                        Some(json::JsonType::Int(scene)) => {
+                            u32::try_from(*scene).expect("Negative scene")
+                        }
+                        e => panic!("No or non int scene {e:?}"),
+                    },
                     scenes: match map.get("scenes") {
-                    Some(json::JsonType::Array(a)) => a
-                        .iter()
-                        .map(|s| match s {
-                            json::JsonType::Object(map) => Scene {
-                                nodes: match map.get("nodes") {
-                                    Some(json::JsonType::Array(x)) => x
-                                        .iter()
-                                        .map(|x| match x {
-                                            json::JsonType::Int(i) => {
-                                                u32::try_from(*i).expect("Negative node")
-                                            }
-                                            e => panic!("Non int node {e:?}"),
-                                        })
-                                        .collect(),
-                                    e => panic!("No or non array nodes {e:?}"),
+                        Some(json::JsonType::Array(a)) => a
+                            .iter()
+                            .map(|s| match s {
+                                json::JsonType::Object(map) => Scene {
+                                    nodes: match map.get("nodes") {
+                                        Some(json::JsonType::Array(x)) => x
+                                            .iter()
+                                            .map(|x| match x {
+                                                json::JsonType::Int(i) => {
+                                                    u32::try_from(*i).expect("Negative node")
+                                                }
+                                                e => panic!("Non int node {e:?}"),
+                                            })
+                                            .collect(),
+                                        e => panic!("No or non array nodes {e:?}"),
+                                    },
                                 },
-                            },
-                            e => panic!("No or on obj scene {e:?}"),
-                        })
-                        .collect(),
-                    e => panic!("No or non array scenes {e:?}"),
-                },
+                                e => panic!("No or on obj scene {e:?}"),
+                            })
+                            .collect(),
+                        e => panic!("No or non array scenes {e:?}"),
+                    },
                     meshes: match map.get("meshes") {
-                    Some(json::JsonType::Array(a)) => a
-                        .iter()
-                        .map(|s| match s {
-                            json::JsonType::Object(map) => Mesh {
-                                primitives: match map.get("primitives") {
-                                    Some(json::JsonType::Array(x)) => x
-                                        .iter()
-                                        .map(|x| match x {
-                                            json::JsonType::Object(map) => Primitive {
-                                                attributes: match map.get("attributes") {
-                                                    Some(json::JsonType::Object(map)) => {
-                                                        // TODO: think these can vary, handle that?
-                                                        Attributes {
-                                                            normal: match map.get("NORMAL") {
-                                                                Some(json::JsonType::Int(i)) => {
-                                                                    u32::try_from(*i)
-                                                                        .expect("Negative normal")
-                                                                }
-                                                                e => panic!("Non int normal {e:?}"),
-                                                            },
-                                                            tangent: match map.get("TANGENT") {
-                                                                Some(json::JsonType::Int(i)) => {
-                                                                    Some(u32::try_from(*i)
-                                                                    .expect("Negative tangent"))
-                                                                }
-                                                                None => None,
-                                                                e => panic!("Non int tangent {e:?}"),
-                                                            },
-                                                            texcoord: match map.get("TEXCOORD_0") { //TODO: figure out the number thing in this name
-                                                                Some(json::JsonType::Int(i)) => {
-                                                                    Some(u32::try_from(*i)
-                                                                        .expect("Negative texcoord"))
-                                                                }
-                                                                None => None,
-                                                                e => panic!("Non int texcoord {e:?}"),
-                                                            },
-                                                            position: match map.get("POSITION") {
-                                                                Some(json::JsonType::Int(i)) => {
-                                                                    u32::try_from(*i)
-                                                                        .expect("Negative position")
-                                                                }
-                                                                e => {
-                                                                    panic!("Non int position {e:?}")
-                                                                }
-                                                            },
-                                                        }
-                                                    }
-                                                    _ => panic!("Non obj attributes"),
-                                                },
-                                                targets: match map.get("targets") {
-                                                    Some(json::JsonType::Array(a)) => Some(a.iter().map(|s| match s {
-                                                            json::JsonType::Object(map) => {
-                                                                // TODO: think these can vary, handle that?
-                                                                Attributes {
-                                                                    normal: match map.get("NORMAL") {
-                                                                        Some(json::JsonType::Int(i)) => {
-                                                                            u32::try_from(*i)
-                                                                                .expect("Negative normal")
-                                                                        }
-                                                                        e => panic!("Non int normal {e:?}"),
-                                                                    },
-                                                                    tangent: match map.get("TANGENT") {
-                                                                        Some(json::JsonType::Int(i)) => {
-                                                                            Some(u32::try_from(*i)
-                                                                            .expect("Negative tangent"))
-                                                                        }
-                                                                        None => None,
-                                                                        e => panic!("Non int tangent {e:?}"),
-                                                                    },
-                                                                    texcoord: match map.get("TEXCOORD_0") { //TODO: figure out the number thing in this name
-                                                                        Some(json::JsonType::Int(i)) => {
-                                                                            Some(u32::try_from(*i)
-                                                                                .expect("Negative texcoord"))
-                                                                        }
-                                                                        None => None,
-                                                                        e => panic!("Non int texcoord {e:?}"),
-                                                                    },
-                                                                    position: match map.get("POSITION") {
-                                                                        Some(json::JsonType::Int(i)) => {
-                                                                            u32::try_from(*i)
-                                                                                .expect("Negative position")
-                                                                        }
-                                                                        e => {
-                                                                            panic!("Non int position {e:?}")
-                                                                        }
-                                                                    },
-                                                                }
-                                                            },
-                                                            _ => panic!("Non obj attributes in target"),
-                                                        }
-                                                    ).collect()),
-                                                    None => None,
-                                                    _ => panic!("Non array targets"),
-                                                },
-                                                indices: match map.get("indices") {
-                                                    Some(json::JsonType::Int(i)) => {
-                                                        u32::try_from(*i).expect("Negative indices")
-                                                    }
-                                                    e => panic!("Non int indices {e:?}"),
-                                                },
-                                                mode: match map.get("mode") {
-                                                    Some(json::JsonType::Int(i)) => {
-                                                        Some(u32::try_from(*i).expect("Negative mode"))
-                                                    }
-                                                    None => None,
-                                                    e => panic!("Non int mode {e:?}"),
-                                                },
-                                                material: match map.get("material") {
-                                                    Some(json::JsonType::Int(i)) => {
-                                                        Some(u32::try_from(*i)
-                                                            .expect("Negative material"))
-                                                    }
-                                                    None => None,
-                                                    e => panic!("Non int material {e:?}"),
-                                                },
-                                            },
-                                            e => panic!("No or none obj primitive {e:?}"),
-                                        })
-                                        .collect(),
-                                    e => panic!("No or none array primitives {e:?}"),
-                                },
-                                name: match map.get("name") {
-                                    Some(json::JsonType::String(s)) => s.to_string(),
-                                    e => panic!("No or none string name {e:?}"),
-                                },
-                            },
-                            e => panic!("Non obj mesh {e:?}"),
-                        })
-                        .collect(),
-                    e => panic!("No or none array meshes {e:?}"),
-                },
-                    animations: match map.get("animations") {
-                    Some(json::JsonType::Array(a)) => a
-                        .iter()
-                        .map(|s| match s {
-                            json::JsonType::Object(map) => Animation {
-                                channels: match map.get("channels") {
-                                    Some(json::JsonType::Array(x)) => x
-                                        .iter()
-                                        .map(|x| match x {
-                                            json::JsonType::Object(map) => Channel {
-                                                sampler: match map.get("sampler") {
-                                                    Some(json::JsonType::Int(i)) => {
-                                                        u32::try_from(*i).expect("Negative sampler")
-                                                    }
-                                                    e => panic!("Non int sampler {e:?}"),
-                                                },
-                                                target: match map.get("target") {
-                                                    Some(json::JsonType::Object(map)) => Target {
-                                                        node: match map.get("node") {
-                                                            Some(json::JsonType::Int(i)) => {
-                                                                u32::try_from(*i)
-                                                                    .expect("Negative node")
+                        Some(json::JsonType::Array(a)) => a
+                            .iter()
+                            .map(|s| match s {
+                                json::JsonType::Object(map) => Mesh {
+                                    primitives: match map.get("primitives") {
+                                        Some(json::JsonType::Array(x)) => x
+                                            .iter()
+                                            .map(|x| match x {
+                                                json::JsonType::Object(map) => Primitive {
+                                                    attributes: match map.get("attributes") {
+                                                        Some(json::JsonType::Object(map)) => {
+                                                            // TODO: think these can vary, handle that?
+                                                            Attributes {
+                                                                normal: match map.get("NORMAL") {
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        u32::try_from(*i)
+                                                                            .expect("Negative normal")
+                                                                    }
+                                                                    e => panic!("Non int normal {e:?}"),
+                                                                },
+                                                                tangent: match map.get("TANGENT") {
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        Some(u32::try_from(*i)
+                                                                        .expect("Negative tangent"))
+                                                                    }
+                                                                    None => None,
+                                                                    e => panic!("Non int tangent {e:?}"),
+                                                                },
+                                                                texcoord: match map.get("TEXCOORD_0") { //TODO: figure out the number thing in this name
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        Some(u32::try_from(*i)
+                                                                            .expect("Negative texcoord"))
+                                                                    }
+                                                                    None => None,
+                                                                    e => panic!("Non int texcoord {e:?}"),
+                                                                },
+                                                                position: match map.get("POSITION") {
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        u32::try_from(*i)
+                                                                            .expect("Negative position")
+                                                                    }
+                                                                    e => {
+                                                                        panic!("Non int position {e:?}")
+                                                                    }
+                                                                },
                                                             }
-                                                            e => panic!("Non int node {e:?}"),
-                                                        },
-                                                        path: match map.get("path") {
-                                                            Some(json::JsonType::String(s)) => {
-                                                                s.to_string()
-                                                            }
-                                                            e => panic!(
-                                                                "No or none string path {e:?}"
-                                                            ),
-                                                        },
+                                                        }
+                                                        _ => panic!("Non obj attributes"),
                                                     },
-                                                    e => panic!("No or non obj target {e:?}"),
+                                                    targets: match map.get("targets") {
+                                                        Some(json::JsonType::Array(a)) => Some(a.iter().map(|s| match s {
+                                                                json::JsonType::Object(map) => {
+                                                                    // TODO: think these can vary, handle that?
+                                                                    Attributes {
+                                                                        normal: match map.get("NORMAL") {
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                u32::try_from(*i)
+                                                                                    .expect("Negative normal")
+                                                                            }
+                                                                            e => panic!("Non int normal {e:?}"),
+                                                                        },
+                                                                        tangent: match map.get("TANGENT") {
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                Some(u32::try_from(*i)
+                                                                                .expect("Negative tangent"))
+                                                                            }
+                                                                            None => None,
+                                                                            e => panic!("Non int tangent {e:?}"),
+                                                                        },
+                                                                        texcoord: match map.get("TEXCOORD_0") { //TODO: figure out the number thing in this name
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                Some(u32::try_from(*i)
+                                                                                    .expect("Negative texcoord"))
+                                                                            }
+                                                                            None => None,
+                                                                            e => panic!("Non int texcoord {e:?}"),
+                                                                        },
+                                                                        position: match map.get("POSITION") {
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                u32::try_from(*i)
+                                                                                    .expect("Negative position")
+                                                                            }
+                                                                            e => {
+                                                                                panic!("Non int position {e:?}")
+                                                                            }
+                                                                        },
+                                                                    }
+                                                                },
+                                                                _ => panic!("Non obj attributes in target"),
+                                                            }
+                                                        ).collect()),
+                                                        None => None,
+                                                        _ => panic!("Non array targets"),
+                                                    },
+                                                    indices: match map.get("indices") {
+                                                        Some(json::JsonType::Int(i)) => {
+                                                            u32::try_from(*i).expect("Negative indices")
+                                                        }
+                                                        e => panic!("Non int indices {e:?}"),
+                                                    },
+                                                    mode: match map.get("mode") {
+                                                        Some(json::JsonType::Int(i)) => {
+                                                            Some(u32::try_from(*i).expect("Negative mode"))
+                                                        }
+                                                        None => None,
+                                                        e => panic!("Non int mode {e:?}"),
+                                                    },
+                                                    material: match map.get("material") {
+                                                        Some(json::JsonType::Int(i)) => {
+                                                            Some(u32::try_from(*i)
+                                                                .expect("Negative material"))
+                                                        }
+                                                        None => None,
+                                                        e => panic!("Non int material {e:?}"),
+                                                    },
                                                 },
-                                            },
-                                            _ => panic!("Non int node"),
-                                        })
-                                        .collect(),
-                                    e => panic!("No or non array channels {e:?}"),
+                                                e => panic!("No or none obj primitive {e:?}"),
+                                            })
+                                            .collect(),
+                                        e => panic!("No or none array primitives {e:?}"),
+                                    },
+                                    name: match map.get("name") {
+                                        Some(json::JsonType::String(s)) => s.to_string(),
+                                        e => panic!("No or none string name {e:?}"),
+                                    },
                                 },
-                                samplers: match map.get("samplers") {
-                                    Some(json::JsonType::Array(x)) => x
-                                        .iter()
-                                        .map(|x| match x {
-                                            json::JsonType::Object(map) => Sampler {
-                                                input: match map.get("input") {
-                                                    Some(json::JsonType::Int(i)) => {
-                                                        u32::try_from(*i).expect("Negative input")
-                                                    }
-                                                    e => panic!("Non int input {e:?}"),
+                                e => panic!("Non obj mesh {e:?}"),
+                            })
+                            .collect(),
+                        e => panic!("No or none array meshes {e:?}"),
+                    },
+                    animations: match map.get("animations") {
+                        Some(json::JsonType::Array(a)) => a
+                            .iter()
+                            .map(|s| match s {
+                                json::JsonType::Object(map) => Animation {
+                                    channels: match map.get("channels") {
+                                        Some(json::JsonType::Array(x)) => x
+                                            .iter()
+                                            .map(|x| match x {
+                                                json::JsonType::Object(map) => Channel {
+                                                    sampler: match map.get("sampler") {
+                                                        Some(json::JsonType::Int(i)) => {
+                                                            u32::try_from(*i).expect("Negative sampler")
+                                                        }
+                                                        e => panic!("Non int sampler {e:?}"),
+                                                    },
+                                                    target: match map.get("target") {
+                                                        Some(json::JsonType::Object(map)) => Target {
+                                                            node: match map.get("node") {
+                                                                Some(json::JsonType::Int(i)) => {
+                                                                    u32::try_from(*i)
+                                                                        .expect("Negative node")
+                                                                }
+                                                                e => panic!("Non int node {e:?}"),
+                                                            },
+                                                            path: match map.get("path") {
+                                                                Some(json::JsonType::String(s)) => {
+                                                                    s.to_string()
+                                                                }
+                                                                e => panic!(
+                                                                    "No or none string path {e:?}"
+                                                                ),
+                                                            },
+                                                        },
+                                                        e => panic!("No or non obj target {e:?}"),
+                                                    },
                                                 },
-                                                interpolation: match map.get("interpolation") {
-                                                    Some(json::JsonType::String(s)) => {
-                                                        s.to_string()
-                                                    }
-                                                    e => panic!(
-                                                        "No or none string interpolation {e:?}"
-                                                    ),
+                                                _ => panic!("Non int node"),
+                                            })
+                                            .collect(),
+                                        e => panic!("No or non array channels {e:?}"),
+                                    },
+                                    samplers: match map.get("samplers") {
+                                        Some(json::JsonType::Array(x)) => x
+                                            .iter()
+                                            .map(|x| match x {
+                                                json::JsonType::Object(map) => Sampler {
+                                                    input: match map.get("input") {
+                                                        Some(json::JsonType::Int(i)) => {
+                                                            u32::try_from(*i).expect("Negative input")
+                                                        }
+                                                        e => panic!("Non int input {e:?}"),
+                                                    },
+                                                    interpolation: match map.get("interpolation") {
+                                                        Some(json::JsonType::String(s)) => {
+                                                            s.to_string()
+                                                        }
+                                                        e => panic!(
+                                                            "No or none string interpolation {e:?}"
+                                                        ),
+                                                    },
+                                                    output: match map.get("output") {
+                                                        Some(json::JsonType::Int(i)) => {
+                                                            u32::try_from(*i).expect("Negative output")
+                                                        }
+                                                        e => panic!("Non int output {e:?}"),
+                                                    },
                                                 },
-                                                output: match map.get("output") {
-                                                    Some(json::JsonType::Int(i)) => {
-                                                        u32::try_from(*i).expect("Negative output")
-                                                    }
-                                                    e => panic!("Non int output {e:?}"),
-                                                },
-                                            },
-                                            e => panic!("Non obj sampler {e:?}"),
-                                        })
-                                        .collect(),
-                                    e => panic!("No or non array nodes {e:?}"),
+                                                e => panic!("Non obj sampler {e:?}"),
+                                            })
+                                            .collect(),
+                                        e => panic!("No or non array nodes {e:?}"),
+                                    },
                                 },
-                            },
-                            e => panic!("Non obj scene {e:?}"),
-                        })
-                        .collect(),
-                        None => vec![],
-                    e => panic!("Non obj animations {e:?}"),
-                },
+                                e => panic!("Non obj scene {e:?}"),
+                            })
+                            .collect(),
+                            None => vec![],
+                        e => panic!("Non obj animations {e:?}"),
+                    },
                     accessors: match map.get("accessors") {
-                    Some(json::JsonType::Array(a)) => a
-                        .iter()
-                        .map(|s| -> Accessor {match s {
-                            json::JsonType::Object(map) => {
-                                let component_type_code = match map.get("componentType") {
-                                    Some(json::JsonType::Int(i)) => {
-                                        u32::try_from(*i).expect("Negative component_type code")
-                                    }
-                                    e => panic!("Non int component_type {e:?}"),
-                                };
-                                let accessor_type = &match (match map.get("type") {
-                                    Some(json::JsonType::String(s)) => s.to_string(),
-                                    e => panic!("No or none string type {e:?}"),
-                                }).as_str() {
-                                    "SCALAR" => AccessorType::SCALAR,
-                                    "VEC2"   => AccessorType::VEC2  ,
-                                    "VEC3"   => AccessorType::VEC3  ,
-                                    "VEC4"   => AccessorType::VEC4  ,
-                                    "MAT2"   => AccessorType::MAT2  ,
-                                    "MAT3"   => AccessorType::MAT3  ,
-                                    "MAT4"   => AccessorType::MAT4  ,
-                                    e => panic!("Unexpected accessor type {e:?} when parsing accessor_type"),
-                                };
-                                Accessor {
-                                    buffer_view: match map.get("bufferView") {
+                        Some(json::JsonType::Array(a)) => a
+                            .iter()
+                            .map(|s| -> Accessor {match s {
+                                json::JsonType::Object(map) => {
+                                    let component_type_code = match map.get("componentType") {
                                         Some(json::JsonType::Int(i)) => {
-                                            u32::try_from(*i).expect("Negative buffer_view")
+                                            u32::try_from(*i).expect("Negative component_type code")
                                         }
-                                        e => panic!("Non int buffer_view {e:?}"),
+                                        e => panic!("Non int component_type {e:?}"),
+                                    };
+                                    let accessor_type = &match (match map.get("type") {
+                                        Some(json::JsonType::String(s)) => s.to_string(),
+                                        e => panic!("No or none string type {e:?}"),
+                                    }).as_str() {
+                                        "SCALAR" => AccessorType::SCALAR,
+                                        "VEC2"   => AccessorType::VEC2  ,
+                                        "VEC3"   => AccessorType::VEC3  ,
+                                        "VEC4"   => AccessorType::VEC4  ,
+                                        "MAT2"   => AccessorType::MAT2  ,
+                                        "MAT3"   => AccessorType::MAT3  ,
+                                        "MAT4"   => AccessorType::MAT4  ,
+                                        e => panic!("Unexpected accessor type {e:?} when parsing accessor_type"),
+                                    };
+                                    Accessor {
+                                        buffer_view: match map.get("bufferView") {
+                                            Some(json::JsonType::Int(i)) => {
+                                                u32::try_from(*i).expect("Negative buffer_view")
+                                            }
+                                            e => panic!("Non int buffer_view {e:?}"),
+                                        },
+                                        byte_offset: match map.get("byteOffset") {
+                                            Some(json::JsonType::Int(i)) => {
+                                                Some(u32::try_from(*i).expect("Negative byte_offset"))
+                                            }
+                                            None => None,
+                                            e => panic!("Non int byte_offset {e:?}"),
+                                        },
+                                        accessor_type: *accessor_type,
+                                        component_type: try_parse_component_type(component_type_code),
+                                        stride: match map.get("stride") {
+                                            Some(json::JsonType::Int(i)) => {
+                                                Some(u32::try_from(*i).expect("Negative stride"))
+                                            }
+                                            None => None,
+                                            e => panic!("Non int stride {e:?}"),
+                                        },
+                                        count: match map.get("count") {
+                                            Some(json::JsonType::Int(i)) => {
+                                                u32::try_from(*i).expect("Negative count")
+                                            }
+                                            e => panic!("Non int count {e:?}"),
+                                        },
+                                        max: {
+                                            match map.get("max") {
+                                                Some(json::JsonType::Array(x)) => {
+                                                    let vec = x
+                                                    .iter()
+                                                    .map(|x| {
+                                                        try_parse_component_value_from_json(
+                                                            component_type_code,
+                                                            x,
+                                                        )
+                                                    })
+                                                        .collect::<Vec<ComponentValue>>();
+                                                    Some(match accessor_type {
+                                                        AccessorType::SCALAR => AccessorValue::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  1 found {}", vec.len()))),
+                                                        AccessorType::VEC2   => AccessorValue::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  2 found {}", vec.len()))),
+                                                        AccessorType::VEC3   => AccessorValue::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  3 found {}", vec.len()))),
+                                                        AccessorType::VEC4   => AccessorValue::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
+                                                        AccessorType::MAT2   => AccessorValue::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
+                                                        AccessorType::MAT3   => AccessorValue::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  9 found {}", vec.len()))),
+                                                        AccessorType::MAT4   => AccessorValue::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected 12 found {}", vec.len()))),
+                                                        e => panic!("Unexpected accessor type {e:?} when parsing max"),
+                                                    })
+                                                    },
+                                                None => None,
+                                                e => panic!("No or non array max's {e:?}"),
+                                            }
+                                        },
+                                        min: {
+                                            match map.get("min") {
+                                                Some(json::JsonType::Array(x)) => {
+                                                    let vec = x
+                                                    .iter()
+                                                    .map(|x| {
+                                                        try_parse_component_value_from_json(
+                                                            component_type_code,
+                                                            x,
+                                                        )
+                                                    })
+                                                        .collect::<Vec<ComponentValue>>();
+                                                    Some(match accessor_type {
+                                                        AccessorType::SCALAR => AccessorValue::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  1 found {}", vec.len()))),
+                                                        AccessorType::VEC2   => AccessorValue::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  2 found {}", vec.len()))),
+                                                        AccessorType::VEC3   => AccessorValue::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  3 found {}", vec.len()))),
+                                                        AccessorType::VEC4   => AccessorValue::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  4 found {}", vec.len()))),
+                                                        AccessorType::MAT2   => AccessorValue::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  4 found {}", vec.len()))),
+                                                        AccessorType::MAT3   => AccessorValue::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  9 found {}", vec.len()))),
+                                                        AccessorType::MAT4   => AccessorValue::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected 12 found {}", vec.len()))),
+                                                        e => panic!("Unexpected accessor type {e:?} when parsing min"),
+                                                    })
+                                                    },
+                                                None => None,
+                                                e => panic!("No or non array min's {e:?}"),
+                                            }
+                                        },
+                                    }
+                                }
+                                e => panic!("No or on obj accessor {e:?}"),
+                            }})
+                            .collect(),
+                        e => panic!("No or non array accessors {e:?}"),
+                    },
+                    materials: match map.get("materials") {
+                        Some(json::JsonType::Array(a)) => a
+                            .iter()
+                            .map(|x| match x {
+                                json::JsonType::Object(map) => Material {
+                                    pbr_metallic_roughtness: match map.get("pbrMetallicRoughness") {
+                                        Some(json::JsonType::Object(map)) =>
+                                        PbrMetallicRoughness {
+                                            base_color_factor: match map.get("baseColorFactor") {
+                                                Some(json::JsonType::Array(x)) => {
+                                                    assert!(x.len() == 4, "base_color_factor is not 4 component");
+                                                    x.into_iter().map(|component| {
+                                                        match component {
+                                                            json::JsonType::Float(f) => *f,
+                                                            json::JsonType::Int(i) => *i as f32,
+                                                            _ => panic!("base_color_factor is not all numbers"),
+                                                        }
+                                                    }).collect::<Vec<f32>>().try_into().expect(
+                                                        "base_color_factor has somehow become not 4 components since last we checked???")
+                                                },
+                                                _ => panic!("base_color_factor is not an array"),
+                                            },
+                                            metallic_factor: match map.get("metallicFactor") {
+                                                Some(json::JsonType::Float(f)) => *f,
+                                                Some(json::JsonType::Int(i)) => *i as f32,
+                                                e => panic!("No or non float metallic_factor {e:?}"),
+                                            },
+                                        },
+                                        e => panic!("No or non obj pbr_metallic_roughtness {e:?}"),
+                                    },
+                                    name: match map.get("name") {
+                                        Some(json::JsonType::String(s)) => s.to_string(),
+                                        e => panic!("No or none string name {e:?}"),
+                                    },
+                                },
+                                e => panic!("No or on obj material {e:?}"),
+                            })
+                            .collect(),
+                            None => vec![],
+                        e => panic!("No or non array materials {e:?}"),
+                    },
+                    buffer_views: match map.get("bufferViews") {
+                        Some(json::JsonType::Array(a)) => a
+                            .iter()
+                            .map(|s| match s {
+                                json::JsonType::Object(map) => BufferView {
+                                    buffer: match map.get("buffer") {
+                                        Some(json::JsonType::Int(i)) => {
+                                            u32::try_from(*i).expect("Negative buffer")
+                                        }
+                                        e => panic!("No or non int buffer {e:?}"),
                                     },
                                     byte_offset: match map.get("byteOffset") {
                                         Some(json::JsonType::Int(i)) => {
                                             Some(u32::try_from(*i).expect("Negative byte_offset"))
                                         }
                                         None => None,
-                                        e => panic!("Non int byte_offset {e:?}"),
+                                        e => panic!("No or non int byte_offset {e:?}"),
                                     },
-                                    accessor_type: *accessor_type,
-                                    component_type: try_parse_component_type(component_type_code),
-                                    stride: match map.get("stride") {
+                                    byte_length: match map.get("byteLength") {
                                         Some(json::JsonType::Int(i)) => {
-                                            Some(u32::try_from(*i).expect("Negative stride"))
+                                            u32::try_from(*i).expect("Negative byte_length")
+                                        }
+                                        e => panic!("No or non int byte_length {e:?}"),
+                                    },
+                                    byte_stride: match map.get("byteStride") {
+                                        Some(json::JsonType::Int(i)) => {
+                                            Some(u32::try_from(*i).expect("Negative byte_stride"))
                                         }
                                         None => None,
-                                        e => panic!("Non int stride {e:?}"),
+                                        e => panic!("Non int byte_stride {e:?}"),
                                     },
-                                    count: match map.get("count") {
+                                    target: match map.get("target") {
                                         Some(json::JsonType::Int(i)) => {
-                                            u32::try_from(*i).expect("Negative count")
+                                            Some(u32::try_from(*i).expect("Negative target"))
                                         }
-                                        e => panic!("Non int count {e:?}"),
+                                        None => None,
+                                        e => panic!("Non int target {e:?}"),
                                     },
-                                    max: {
-                                        match map.get("max") {
-                                            Some(json::JsonType::Array(x)) => {
-                                                let vec = x
-                                                .iter()
-                                                .map(|x| {
-                                                    try_parse_component_value_from_json(
-                                                        component_type_code,
-                                                        x,
-                                                    )
-                                                })
-                                                    .collect::<Vec<ComponentValue>>();
-                                                Some(match accessor_type {
-                                                    AccessorType::SCALAR => AccessorValue::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  1 found {}", vec.len()))),
-                                                    AccessorType::VEC2   => AccessorValue::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  2 found {}", vec.len()))),
-                                                    AccessorType::VEC3   => AccessorValue::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  3 found {}", vec.len()))),
-                                                    AccessorType::VEC4   => AccessorValue::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
-                                                    AccessorType::MAT2   => AccessorValue::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  4 found {}", vec.len()))),
-                                                    AccessorType::MAT3   => AccessorValue::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected  9 found {}", vec.len()))),
-                                                    AccessorType::MAT4   => AccessorValue::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor max, expected 12 found {}", vec.len()))),
-                                                    e => panic!("Unexpected accessor type {e:?} when parsing max"),
-                                                })
-                                                },
-                                            None => None,
-                                            e => panic!("No or non array max's {e:?}"),
+                                },
+                                e => panic!("No or on obj buffer_view {e:?}"),
+                            })
+                            .collect(),
+                        e => panic!("No or non array buffer_views {e:?}"),
+                    },
+                    buffers: match map.get("buffers") {
+                        Some(json::JsonType::Array(a)) => a
+                        .iter()
+                        .map(|s| match s {
+                            JsonType::Object(map) => {
+                                Buffer {
+                                    byte_length: match map.get("byteLength") {
+                                        Some(json::JsonType::Int(i)) => {
+                                            u32::try_from(*i).expect("Negative byte_length")
                                         }
+                                        e => panic!("No or non int byte_length {e:?}"),
                                     },
-                                    min: {
-                                        match map.get("min") {
-                                            Some(json::JsonType::Array(x)) => {
-                                                let vec = x
-                                                .iter()
-                                                .map(|x| {
-                                                    try_parse_component_value_from_json(
-                                                        component_type_code,
-                                                        x,
-                                                    )
-                                                })
-                                                    .collect::<Vec<ComponentValue>>();
-                                                Some(match accessor_type {
-                                                    AccessorType::SCALAR => AccessorValue::SCALAR(vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  1 found {}", vec.len()))),
-                                                    AccessorType::VEC2   => AccessorValue::VEC2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  2 found {}", vec.len()))),
-                                                    AccessorType::VEC3   => AccessorValue::VEC3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  3 found {}", vec.len()))),
-                                                    AccessorType::VEC4   => AccessorValue::VEC4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  4 found {}", vec.len()))),
-                                                    AccessorType::MAT2   => AccessorValue::MAT2  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  4 found {}", vec.len()))),
-                                                    AccessorType::MAT3   => AccessorValue::MAT3  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected  9 found {}", vec.len()))),
-                                                    AccessorType::MAT4   => AccessorValue::MAT4  (vec.try_into().unwrap_or_else(|vec: Vec<ComponentValue>| panic!("Mismatched amount in accessor min, expected 12 found {}", vec.len()))),
-                                                    e => panic!("Unexpected accessor type {e:?} when parsing min"),
-                                                })
-                                                },
-                                            None => None,
-                                            e => panic!("No or non array min's {e:?}"),
-                                        }
-                                    },
-                                }
+                                }                            
                             }
-                            e => panic!("No or on obj accessor {e:?}"),
-                        }})
-                        .collect(),
-                    e => panic!("No or non array accessors {e:?}"),
-                },
-                    materials: match map.get("materials") {
-                    Some(json::JsonType::Array(a)) => a
-                        .iter()
-                        .map(|s| match s {
-                            json::JsonType::Object(map) => Material {
-                                pbr_metallic_roughtness: match map.get("pbrMetallicRoughness") {
-                                    Some(json::JsonType::Object(map)) =>
-                                    PbrMetallicRoughness {
-                                        base_color_factor: match map.get("baseColorFactor") {
-                                            Some(json::JsonType::Array(x)) => {
-                                                assert!(x.len() == 4, "base_color_factor is not 4 component");
-                                                x.into_iter().map(|component| {
-                                                    match component {
-                                                        json::JsonType::Float(f) => *f,
-                                                        json::JsonType::Int(i) => *i as f32,
-                                                        _ => panic!("base_color_factor is not all numbers"),
-                                                    }
-                                                }).collect::<Vec<f32>>().try_into().expect(
-                                                    "base_color_factor has somehow become not 4 components since last we checked???")
-                                            },
-                                            _ => panic!("base_color_factor is not an array"),
-                                        },
-                                        metallic_factor: match map.get("metallicFactor") {
-                                            Some(json::JsonType::Float(f)) => *f,
-                                            Some(json::JsonType::Int(i)) => *i as f32,
-                                            e => panic!("No or non float metallic_factor {e:?}"),
-                                        },
-                                    },
-                                    e => panic!("No or non obj pbr_metallic_roughtness {e:?}"),
-                                },
-                                name: match map.get("name") {
-                                    Some(json::JsonType::String(s)) => s.to_string(),
-                                    e => panic!("No or none string name {e:?}"),
-                                },
-                            },
-                            e => panic!("No or on obj material {e:?}"),
-                        })
-                        .collect(),
-                        None => vec![],
-                    e => panic!("No or non array materials {e:?}"),
-                },
-                    buffer_views: match map.get("bufferViews") {
-                    Some(json::JsonType::Array(a)) => a
-                        .iter()
-                        .map(|s| match s {
-                            json::JsonType::Object(map) => BufferView {
-                                buffer: match map.get("buffer") {
-                                    Some(json::JsonType::Int(i)) => {
-                                        u32::try_from(*i).expect("Negative buffer")
-                                    }
-                                    e => panic!("No or non int buffer {e:?}"),
-                                },
-                                byte_offset: match map.get("byteOffset") {
-                                    Some(json::JsonType::Int(i)) => {
-                                        Some(u32::try_from(*i).expect("Negative byte_offset"))
-                                    }
-                                    None => None,
-                                    e => panic!("No or non int byte_offset {e:?}"),
-                                },
-                                byte_length: match map.get("byteLength") {
-                                    Some(json::JsonType::Int(i)) => {
-                                        u32::try_from(*i).expect("Negative byte_length")
-                                    }
-                                    e => panic!("No or non int byte_length {e:?}"),
-                                },
-                                byte_stride: match map.get("byteStride") {
-                                    Some(json::JsonType::Int(i)) => {
-                                        Some(u32::try_from(*i).expect("Negative byte_stride"))
-                                    }
-                                    None => None,
-                                    e => panic!("Non int byte_stride {e:?}"),
-                                },
-                                target: match map.get("target") {
-                                    Some(json::JsonType::Int(i)) => {
-                                        Some(u32::try_from(*i).expect("Negative target"))
-                                    }
-                                    None => None,
-                                    e => panic!("Non int target {e:?}"),
-                                },
-                            },
-                            e => panic!("No or on obj buffer_view {e:?}"),
-                        })
-                        .collect(),
-                    e => panic!("No or non array buffer_views {e:?}"),
-                },
-                buffers: match map.get("buffers") {
-                    Some(json::JsonType::Array(a)) => a
-                    .iter()
-                    .map(|s| match s {
-                        JsonType::Object(map) => {
-                            Buffer {
-                                byte_length: match map.get("byteLength") {
-                                    Some(json::JsonType::Int(i)) => {
-                                        u32::try_from(*i).expect("Negative byte_length")
-                                    }
-                                    e => panic!("No or non int byte_length {e:?}"),
-                                },
-                            }                            
-                        }
-                        e => panic!("No or non object buffer {e:?}"),
-                        })
-                        .collect(),
-                    e => panic!("No or non array buffers {e:?}"),
-                },
+                            e => panic!("No or non object buffer {e:?}"),
+                            })
+                            .collect(),
+                        e => panic!("No or non array buffers {e:?}"),
+                    },
                 }
             }
             _ => panic!("Wrong JSON"),
