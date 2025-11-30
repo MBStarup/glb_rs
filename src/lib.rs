@@ -289,7 +289,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                     e => panic!("No or none array meshes {e:?}"),
                 },
                     animations: match map.get("animations") {
-                    Some(json::JsonType::Array(a)) => Some(a
+                    Some(json::JsonType::Array(a)) => a
                         .iter()
                         .map(|s| match s {
                             json::JsonType::Object(map) => Animation {
@@ -364,8 +364,8 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                             },
                             e => panic!("Non obj scene {e:?}"),
                         })
-                        .collect()),
-                        None => None,
+                        .collect(),
+                        None => vec![],
                     e => panic!("Non obj animations {e:?}"),
                 },
                     accessors: match map.get("accessors") {

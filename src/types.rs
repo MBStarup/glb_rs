@@ -150,7 +150,7 @@ pub struct Gltf {
     pub scene: u32,
     pub scenes: Vec<Scene>,
     pub meshes: Vec<Mesh>,
-    pub animations: Option<Vec<Animation>>,
+    pub animations: Vec<Animation>,
     pub accessors: Vec<Accessor>,
     pub materials: Vec<Material>,
     pub buffer_views: Vec<BufferView>,
