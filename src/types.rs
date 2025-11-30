@@ -149,6 +149,16 @@ pub struct BufferView {
 }
 
 #[derive(Debug)]
+pub struct Skin {
+    pub inverse_bind_matrices: Option<u32>,
+    pub skeleton: Option<u32>,
+    pub joints: Vec<u32>,
+    pub name: Option<String>,
+    // pub extension: Option<JsonType>,
+    // pub extras: Option<???>,
+}
+
+#[derive(Debug)]
 pub struct Buffer {
     pub byte_length: u32,
 }
@@ -161,6 +171,7 @@ pub struct Gltf {
     pub meshes: Vec<Mesh>,
     pub nodes: Vec<Node>,
     pub animations: Vec<Animation>,
+    pub skins: Vec<Skin>,
     pub accessors: Vec<Accessor>,
     pub materials: Vec<Material>,
     pub buffer_views: Vec<BufferView>,

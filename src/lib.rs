@@ -450,6 +450,42 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                             None => vec![],
                         e => panic!("Non obj animations {e:?}"),
                     },
+                    skins: match map.get("skins") {
+                        Some(json::JsonType::Array(a)) => a.iter().map(|x| match x {
+                            json::JsonType::Object(map) => Skin {
+                                inverse_bind_matrices: match map.get("inverseBindMatrices") {
+                                    Some(json::JsonType::Int(i)) => Some(u32::try_from(*i).expect("Negative inverse_bind_matrices")),
+                                    None => None,
+                                    e => panic!("Non int inverse_bind_matrices {e:?}"),
+                                },
+                                skeleton: match map.get("skeleton") {
+                                    Some(json::JsonType::Int(i)) => Some(u32::try_from(*i).expect("Negative skeleton")),
+                                    None => None,
+                                    e => panic!("Non int skeleton {e:?}"),
+                                },
+                                joints: match map.get("joints") { 
+                                    Some(json::JsonType::Array(a)) => {a.iter().map(|x| {
+                                        match x {
+                                            JsonType::Int(i) => u32::try_from(*i).expect("Negative joint"),
+                                            e => panic!("Non int joint {e:?}"),
+                                        }
+                                        }).collect()
+                                    },
+                                    //TODO: check array length >= 1
+                                    None => panic!("No joints in skin"),
+                                    e => panic!("Non array joints {e:?}"),
+                                },
+                                name: match map.get("name") {
+                                    Some(json::JsonType::String(s)) => Some(s.to_string()),
+                                    None => None,
+                                    e => panic!("No or none string name {e:?}"),
+                                },
+                            },
+                            e => panic!("Non obj skins {e:?}"),
+                        }).collect(),
+                        None => vec![],
+                        e => panic!("Non array skins {e:?}"),
+                    },
                     accessors: match map.get("accessors") {
                         Some(json::JsonType::Array(a)) => a
                             .iter()
