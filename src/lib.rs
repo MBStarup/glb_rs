@@ -170,37 +170,75 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                         Some(json::JsonType::Object(map)) => {
                                                             // TODO: think these can vary, handle that?
                                                             Attributes {
+                                                                color_0: match map.get("COLOR_0") {
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        Some(u32::try_from(*i).expect("Negative COLOR_0"))
+                                                                    }
+                                                                    None => None,
+                                                                    e => panic!("Non int COLOR_0 {e:?}")
+                                                                },
+                                                                joints_0: match map.get("JOINTS_0") {
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        Some(u32::try_from(*i).expect("Negative JOINTS_0"))
+                                                                    }
+                                                                    None => None,
+                                                                    e => panic!("Non int JOINTS_0 {e:?}")
+                                                                },
                                                                 normal: match map.get("NORMAL") {
                                                                     Some(json::JsonType::Int(i)) => {
-                                                                        u32::try_from(*i)
-                                                                            .expect("Negative normal")
-                                                                    }
-                                                                    e => panic!("Non int normal {e:?}"),
-                                                                },
-                                                                tangent: match map.get("TANGENT") {
-                                                                    Some(json::JsonType::Int(i)) => {
-                                                                        Some(u32::try_from(*i)
-                                                                        .expect("Negative tangent"))
+                                                                        Some(u32::try_from(*i).expect("Negative NORMAL"))
                                                                     }
                                                                     None => None,
-                                                                    e => panic!("Non int tangent {e:?}"),
-                                                                },
-                                                                texcoord: match map.get("TEXCOORD_0") { //TODO: figure out the number thing in this name
-                                                                    Some(json::JsonType::Int(i)) => {
-                                                                        Some(u32::try_from(*i)
-                                                                            .expect("Negative texcoord"))
-                                                                    }
-                                                                    None => None,
-                                                                    e => panic!("Non int texcoord {e:?}"),
+                                                                    e => panic!("Non int NORMAL {e:?}"),
                                                                 },
                                                                 position: match map.get("POSITION") {
                                                                     Some(json::JsonType::Int(i)) => {
-                                                                        u32::try_from(*i)
-                                                                            .expect("Negative position")
+                                                                        Some(u32::try_from(*i).expect("Negative POSITION"))
                                                                     }
-                                                                    e => {
-                                                                        panic!("Non int position {e:?}")
+                                                                    None => None,
+                                                                    e => panic!("Non int POSITION {e:?}")
+                                                                },
+                                                                tangent: match map.get("TANGENT") {
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        Some(u32::try_from(*i).expect("Negative TANGENT"))
                                                                     }
+                                                                    None => None,
+                                                                    e => panic!("Non int TANGENT {e:?}"),
+                                                                },
+                                                                texcoord_0: match map.get("TEXCOORD_0") {
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        Some(u32::try_from(*i).expect("Negative TEXCOORD_0"))
+                                                                    }
+                                                                    None => None,
+                                                                    e => panic!("Non int TEXCOORD_0 {e:?}"),
+                                                                },
+                                                                texcoord_1: match map.get("TEXCOORD_1") {
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        Some(u32::try_from(*i).expect("Negative TEXCOORD_1"))
+                                                                    }
+                                                                    None => None,
+                                                                    e => panic!("Non int TEXCOORD_1 {e:?}"),
+                                                                },
+                                                                texcoord_2: match map.get("TEXCOORD_2") {
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        Some(u32::try_from(*i).expect("Negative TEXCOORD_2"))
+                                                                    }
+                                                                    None => None,
+                                                                    e => panic!("Non int TEXCOORD_2 {e:?}"),
+                                                                },
+                                                                texcoord_3: match map.get("TEXCOORD_3") {
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        Some(u32::try_from(*i).expect("Negative TEXCOORD_3"))
+                                                                    }
+                                                                    None => None,
+                                                                    e => panic!("Non int TEXCOORD_3 {e:?}"),
+                                                                },
+                                                                weights_0: match map.get("WEIGHTS_0") {
+                                                                    Some(json::JsonType::Int(i)) => {
+                                                                        Some(u32::try_from(*i).expect("Negative WEIGHTS_0"))
+                                                                    }
+                                                                    None => None,
+                                                                    e => panic!("Non int WEIGHTS_0 {e:?}")
                                                                 },
                                                             }
                                                         }
@@ -211,37 +249,75 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                                 json::JsonType::Object(map) => {
                                                                     // TODO: think these can vary, handle that?
                                                                     Attributes {
+                                                                        color_0: match map.get("COLOR_0") {
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                Some(u32::try_from(*i).expect("Negative COLOR_0"))
+                                                                            }
+                                                                            None => None,
+                                                                            e => panic!("Non int COLOR_0 {e:?}")
+                                                                        },
+                                                                        joints_0: match map.get("JOINTS_0") {
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                Some(u32::try_from(*i).expect("Negative JOINTS_0"))
+                                                                            }
+                                                                            None => None,
+                                                                            e => panic!("Non int JOINTS_0 {e:?}")
+                                                                        },
                                                                         normal: match map.get("NORMAL") {
                                                                             Some(json::JsonType::Int(i)) => {
-                                                                                u32::try_from(*i)
-                                                                                    .expect("Negative normal")
-                                                                            }
-                                                                            e => panic!("Non int normal {e:?}"),
-                                                                        },
-                                                                        tangent: match map.get("TANGENT") {
-                                                                            Some(json::JsonType::Int(i)) => {
-                                                                                Some(u32::try_from(*i)
-                                                                                .expect("Negative tangent"))
+                                                                                Some(u32::try_from(*i).expect("Negative NORMAL"))
                                                                             }
                                                                             None => None,
-                                                                            e => panic!("Non int tangent {e:?}"),
-                                                                        },
-                                                                        texcoord: match map.get("TEXCOORD_0") { //TODO: figure out the number thing in this name
-                                                                            Some(json::JsonType::Int(i)) => {
-                                                                                Some(u32::try_from(*i)
-                                                                                    .expect("Negative texcoord"))
-                                                                            }
-                                                                            None => None,
-                                                                            e => panic!("Non int texcoord {e:?}"),
+                                                                            e => panic!("Non int NORMAL {e:?}"),
                                                                         },
                                                                         position: match map.get("POSITION") {
                                                                             Some(json::JsonType::Int(i)) => {
-                                                                                u32::try_from(*i)
-                                                                                    .expect("Negative position")
+                                                                                Some(u32::try_from(*i).expect("Negative POSITION"))
                                                                             }
-                                                                            e => {
-                                                                                panic!("Non int position {e:?}")
+                                                                            None => None,
+                                                                            e => panic!("Non int POSITION {e:?}")
+                                                                        },
+                                                                        tangent: match map.get("TANGENT") {
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                Some(u32::try_from(*i).expect("Negative TANGENT"))
                                                                             }
+                                                                            None => None,
+                                                                            e => panic!("Non int TANGENT {e:?}"),
+                                                                        },
+                                                                        texcoord_0: match map.get("TEXCOORD_0") {
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                Some(u32::try_from(*i).expect("Negative TEXCOORD_0"))
+                                                                            }
+                                                                            None => None,
+                                                                            e => panic!("Non int TEXCOORD_0 {e:?}"),
+                                                                        },
+                                                                        texcoord_1: match map.get("TEXCOORD_1") {
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                Some(u32::try_from(*i).expect("Negative TEXCOORD_1"))
+                                                                            }
+                                                                            None => None,
+                                                                            e => panic!("Non int TEXCOORD_1 {e:?}"),
+                                                                        },
+                                                                        texcoord_2: match map.get("TEXCOORD_2") {
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                Some(u32::try_from(*i).expect("Negative TEXCOORD_2"))
+                                                                            }
+                                                                            None => None,
+                                                                            e => panic!("Non int TEXCOORD_2 {e:?}"),
+                                                                        },
+                                                                        texcoord_3: match map.get("TEXCOORD_3") {
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                Some(u32::try_from(*i).expect("Negative TEXCOORD_3"))
+                                                                            }
+                                                                            None => None,
+                                                                            e => panic!("Non int TEXCOORD_3 {e:?}"),
+                                                                        },
+                                                                        weights_0: match map.get("WEIGHTS_0") {
+                                                                            Some(json::JsonType::Int(i)) => {
+                                                                                Some(u32::try_from(*i).expect("Negative WEIGHTS_0"))
+                                                                            }
+                                                                            None => None,
+                                                                            e => panic!("Non int WEIGHTS_0 {e:?}")
                                                                         },
                                                                     }
                                                                 },

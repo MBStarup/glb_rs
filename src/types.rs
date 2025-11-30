@@ -68,10 +68,19 @@ pub struct Node {
 
 #[derive(Debug)]
 pub struct Attributes {
-    pub position: u32,
-    pub normal: u32,
+    //. This is poossibly just "common" attributes? Taken from here: https://learn.microsoft.com/en-us/dotnet/api/microsoft.mixedreality.toolkit.utilities.gltf.schema.gltfmeshprimitiveattributes?view=mixed-reality-toolkit-unity-2020-dotnet-2.8.0
+    //. I think the spec just defines this as an arbritrary object, soooo, we could, too, but if this is bascially an unoficcial standard, might as well just parse it completely. This at least seems to correspond to what Blender does
+    // TODO: save possible extra keys in json object on here, in case some meshes have arbritrary properties
+    pub color_0: Option<u32>,
+    pub joints_0: Option<u32>,
+    pub normal: Option<u32>,
+    pub position: Option<u32>,
     pub tangent: Option<u32>,
-    pub texcoord: Option<u32>,
+    pub texcoord_0: Option<u32>,
+    pub texcoord_1: Option<u32>,
+    pub texcoord_2: Option<u32>,
+    pub texcoord_3: Option<u32>,
+    pub weights_0: Option<u32>,
 }
 
 #[derive(Debug)]
@@ -87,7 +96,6 @@ pub struct Primitive {
 pub struct Mesh {
     pub primitives: Vec<Primitive>,
     pub name: String,
-    // TODO: weights
 }
 
 #[derive(Debug)]
