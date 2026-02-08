@@ -119,6 +119,7 @@ pub struct Sampler {
 
 #[derive(Debug)]
 pub struct Animation {
+    pub name: String,
     pub channels: Vec<Channel>,
     pub samplers: Vec<Sampler>,
 }

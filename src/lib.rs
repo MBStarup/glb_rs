@@ -451,6 +451,14 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                             .iter()
                             .map(|s| match s {
                                 json::JsonType::Object(map) => Animation {
+                                    name: match map.get("name") {
+                                        Some(json::JsonType::String(s)) => {
+                                            s.to_string()
+                                        }
+                                        e => panic!(
+                                            "No or none string name {e:?}"
+                                        ),
+                                    },
                                     channels: match map.get("channels") {
                                         Some(json::JsonType::Array(x)) => x
                                             .iter()
