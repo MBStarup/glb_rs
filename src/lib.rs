@@ -118,14 +118,14 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                         Some(json::JsonType::Object(map)) => Asset {
                             generator: match map.get("generator") {
                                 Some(json::JsonType::String(s)) => s.to_string(),
-                                _ => panic!("No generator"),
+                                other => panic!("asset.generator not string: {other:?}"),
                             },
                             version: match map.get("version") {
                                 Some(json::JsonType::String(s)) => s.to_string(),
-                                _ => panic!("No version"),
+                                other => panic!("asset.version not string: {other:?}"),
                             },
                         },
-                        _ => panic!("No asset"),
+                        other => panic!("No asset: {other:?}"),
                     },
                     scene: match map.get("scene") {
                         Some(json::JsonType::Int(scene)) => {
@@ -242,7 +242,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                                 },
                                                             }
                                                         }
-                                                        _ => panic!("Non obj attributes"),
+                                                        other => panic!("Non obj attributes: {other:?}"),
                                                     },
                                                     targets: match map.get("targets") {
                                                         Some(json::JsonType::Array(a)) => Some(a.iter().map(|s| match s {
@@ -321,11 +321,11 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                                         },
                                                                     }
                                                                 },
-                                                                _ => panic!("Non obj attributes in target"),
+                                                                other => panic!("Non obj attributes in target: {other:?}"),
                                                             }
                                                         ).collect()),
                                                         None => None,
-                                                        _ => panic!("Non array targets"),
+                                                        other => panic!("Non array targets: {other:?}"),
                                                     },
                                                     indices: match map.get("indices") {
                                                         Some(json::JsonType::Int(i)) => {
@@ -455,9 +455,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                         Some(json::JsonType::String(s)) => {
                                             s.to_string()
                                         }
-                                        e => panic!(
-                                            "No or none string name {e:?}"
-                                        ),
+                                        e => panic!("No or none string name {e:?}"),
                                     },
                                     channels: match map.get("channels") {
                                         Some(json::JsonType::Array(x)) => x
@@ -483,15 +481,13 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                                 Some(json::JsonType::String(s)) => {
                                                                     s.to_string()
                                                                 }
-                                                                e => panic!(
-                                                                    "No or none string path {e:?}"
-                                                                ),
+                                                                e => panic!("No or none string path {e:?}"),
                                                             },
                                                         },
                                                         e => panic!("No or non obj target {e:?}"),
                                                     },
                                                 },
-                                                _ => panic!("Non int node"),
+                                                other => panic!("Non int node: {other:?}"),
                                             })
                                             .collect(),
                                         e => panic!("No or non array channels {e:?}"),
@@ -511,9 +507,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                         Some(json::JsonType::String(s)) => {
                                                             s.to_string()
                                                         }
-                                                        e => panic!(
-                                                            "No or none string interpolation {e:?}"
-                                                        ),
+                                                        e => panic!("No or none string interpolation {e:?}"),
                                                     },
                                                     output: match map.get("output") {
                                                         Some(json::JsonType::Int(i)) => {
@@ -690,8 +684,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                             .map(|x| match x {
                                 json::JsonType::Object(map) => Material {
                                     pbr_metallic_roughtness: match map.get("pbrMetallicRoughness") {
-                                        Some(json::JsonType::Object(map)) =>
-                                        PbrMetallicRoughness {
+                                        Some(json::JsonType::Object(map)) => PbrMetallicRoughness {
                                             base_color_factor: match map.get("baseColorFactor") {
                                                 Some(json::JsonType::Array(x)) => {
                                                     assert!(x.len() == 4, "base_color_factor is not 4 component");
@@ -699,12 +692,12 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                         match component {
                                                             json::JsonType::Float(f) => *f,
                                                             json::JsonType::Int(i) => *i as f32,
-                                                            _ => panic!("base_color_factor is not all numbers"),
+                                                            other => panic!("base_color_factor is not all numbers: {other:?}"),
                                                         }
                                                     }).collect::<Vec<f32>>().try_into().expect(
                                                         "base_color_factor has somehow become not 4 components since last we checked???")
                                                 },
-                                                _ => panic!("base_color_factor is not an array"),
+                                                other => panic!("base_color_factor is not an array: {other:?}"),
                                             },
                                             metallic_factor: match map.get("metallicFactor") {
                                                 Some(json::JsonType::Float(f)) => *f,
@@ -790,7 +783,7 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                     },
                 }
             }
-            _ => panic!("Wrong JSON"),
+            other => panic!("Wrong JSON: {other:?}"),
         }, blob)
     }
 }
