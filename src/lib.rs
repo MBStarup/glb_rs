@@ -697,11 +697,13 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                     }).collect::<Vec<f32>>().try_into().expect(
                                                         "base_color_factor has somehow become not 4 components since last we checked???")
                                                 },
+                                                None => [1.0, 1.0, 1.0, 1.0], // NOTE[Default]: as per spec
                                                 other => panic!("base_color_factor is not an array: {other:?}"),
                                             },
                                             metallic_factor: match map.get("metallicFactor") {
                                                 Some(json::JsonType::Float(f)) => *f,
                                                 Some(json::JsonType::Int(i)) => *i as f32,
+                                                None => 1.0, // Note[Default]: From the spec
                                                 e => panic!("No or non float metallic_factor {e:?}"),
                                             },
                                         },
