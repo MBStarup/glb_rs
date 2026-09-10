@@ -98,10 +98,19 @@ pub struct Mesh {
     pub name: String,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum AnimationTargetPath {
+    TRANSLATION,
+    ROTATION,
+    SCALE,
+    WEIGHTS,
+    // TODO[KHR_animation_pointer]: KHR_ANIMATION_POINTER(String),
+}
+
 #[derive(Debug)]
 pub struct Target {
     pub node: u32,
-    pub path: String,
+    pub path: AnimationTargetPath,
 }
 
 #[derive(Debug)]
@@ -110,10 +119,17 @@ pub struct Channel {
     pub target: Target,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum SamplerInterpolation {
+    STEP,
+    LINEAR,
+    CUBICSPLINE,
+}
+
 #[derive(Debug)]
 pub struct Sampler {
     pub input: u32,
-    pub interpolation: String,
+    pub interpolation: SamplerInterpolation,
     pub output: u32,
 }
 

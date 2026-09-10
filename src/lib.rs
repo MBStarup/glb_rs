@@ -479,9 +479,15 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                             },
                                                             path: match map.get("path") {
                                                                 Some(json::JsonType::String(s)) => {
-                                                                    s.to_string()
+                                                                    match s.as_str() {
+                                                                        "translation" => AnimationTargetPath::TRANSLATION,
+                                                                        "rotation" => AnimationTargetPath::ROTATION,
+                                                                        "scale" => AnimationTargetPath::SCALE,
+                                                                        "weights" => AnimationTargetPath::WEIGHTS,
+                                                                        other => panic!("Unknown animation target path {other:?}")
+                                                                    }
                                                                 }
-                                                                e => panic!("No or none string path {e:?}"),
+                                                                e => panic!("Non-string animation target path {e:?}"),
                                                             },
                                                         },
                                                         e => panic!("No or non obj target {e:?}"),
@@ -505,9 +511,15 @@ pub fn parse(file: &mut [u8]) -> (Gltf, &mut [u8]) {
                                                     },
                                                     interpolation: match map.get("interpolation") {
                                                         Some(json::JsonType::String(s)) => {
-                                                            s.to_string()
+                                                            match s.as_str() {
+                                                                "STEP" => SamplerInterpolation::STEP,
+                                                                "LINEAR" => SamplerInterpolation::LINEAR,
+                                                                "CUBICSPLINE" => SamplerInterpolation::CUBICSPLINE,
+                                                                other => panic!("Unknown sampler interpolation {other:?}"),
+                                                            }
                                                         }
-                                                        e => panic!("No or none string interpolation {e:?}"),
+                                                        None => SamplerInterpolation::LINEAR,
+                                                        e => panic!("Non-string sampler interpolation {e:?}"),
                                                     },
                                                     output: match map.get("output") {
                                                         Some(json::JsonType::Int(i)) => {
